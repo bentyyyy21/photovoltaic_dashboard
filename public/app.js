@@ -46,6 +46,7 @@ const els = {
   exportProvince: document.querySelector("#exportProvince"),
   exportNational: document.querySelector("#exportNational"),
   provinceLabels: document.querySelectorAll("[data-province-label]"),
+  navLinks: document.querySelectorAll(".dashboard-nav a"),
 };
 
 const marketOrder = ["日前", "实时"];
@@ -73,6 +74,29 @@ function fmtParameter(value, digits = 4, percent = false) {
     return percent ? `${fmt(value * 100, 1)}%` : fmt(value, digits);
   }
   return escapeHtml(value).replaceAll("\n", "<br>");
+}
+
+function setActiveNavigation(targetId) {
+  els.navLinks.forEach((link) => {
+    link.classList.toggle("is-active", link.getAttribute("href") === `#${targetId}`);
+  });
+}
+
+function initNavigation() {
+  els.navLinks.forEach((link) => {
+    link.addEventListener("click", () => setActiveNavigation(link.getAttribute("href").slice(1)));
+  });
+  if (!("IntersectionObserver" in window)) return;
+  const observer = new IntersectionObserver((entries) => {
+    const visible = entries
+      .filter((entry) => entry.isIntersecting)
+      .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+    if (visible) setActiveNavigation(visible.target.id);
+  }, {
+    rootMargin: "-24% 0px -66% 0px",
+    threshold: [0, 0.1, 0.25],
+  });
+  document.querySelectorAll(".dashboard-anchor").forEach((section) => observer.observe(section));
 }
 
 function registerChartHits(canvas, hits, width, height) {
@@ -707,6 +731,7 @@ async function init() {
   fillSelect(els.province, state.data.provinces.map((p) => p.name));
   updateNationalMonths(false);
   updateProvinceMonths(false);
+  initNavigation();
   render();
   els.province.addEventListener("change", () => {
     updateProvinceMonths(false);

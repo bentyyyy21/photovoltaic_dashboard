@@ -11,24 +11,25 @@
   <body>
     <main class="shell">
       <header class="topbar brand-header">
-        <span class="brand-rail" aria-hidden="true"></span>
-        <div class="brand-content">
-          <div class="brand-title">
-            <span class="brand-name">TCL 光伏科技</span>
-            <h1>各省光伏电价数据看板</h1>
-          </div>
-          <div class="department-badge">
-            <img src="./public/assets/tcl-logo.png" alt="TCL" />
-            <div>
-              <strong>能源运营中心·电碳业务部</strong>
-              <span>政策分析组</span>
+        <div class="brand-identity">
+          <img class="header-logo" src="./public/assets/tcl-logo.png" alt="TCL" />
+          <div class="brand-content">
+            <div class="brand-title">
+              <span class="brand-name">TCL 光伏科技</span>
+              <h1>各省光伏电价数据看板</h1>
             </div>
+            <p class="brand-department">能源运营中心·电碳业务部&nbsp;&nbsp;|&nbsp;&nbsp;政策分析组</p>
           </div>
         </div>
+        <nav class="dashboard-nav" aria-label="看板模块导航">
+          <a class="is-active" href="#nationalModule">全国数据</a>
+          <a href="#priceParams">价格参数</a>
+          <a href="#provinceModule">省级数据</a>
+        </nav>
         <p id="dataStamp" class="load-status" hidden></p>
       </header>
 
-      <section class="module-section">
+      <section id="nationalModule" class="module-section dashboard-anchor">
         <div class="module-title">
           <h2>全国数据模块</h2>
         </div>
@@ -107,7 +108,7 @@
         </article>
       </section>
 
-      <section class="panel params-panel">
+      <section id="priceParams" class="panel params-panel dashboard-anchor">
         <div class="panel-head">
           <h2>全国价格参数</h2>
         </div>
@@ -145,7 +146,7 @@
       </section>
       </section>
 
-      <section class="module-section province-module">
+      <section id="provinceModule" class="module-section province-module dashboard-anchor">
         <div class="module-title">
           <h2 data-province-label="数据模块">省级数据模块</h2>
         </div>
