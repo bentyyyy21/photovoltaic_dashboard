@@ -39,6 +39,7 @@ const els = {
   nationalDayHint: document.querySelector("#nationalDayHint"),
   nationalRealHint: document.querySelector("#nationalRealHint"),
   coalRows: document.querySelector("#coalRows"),
+  mechanismHead: document.querySelector("#mechanismHead"),
   mechanismRows: document.querySelector("#mechanismRows"),
   settlementHead: document.querySelector("#settlementHead"),
   settlementRows: document.querySelector("#settlementRows"),
@@ -55,6 +56,23 @@ function fmt(value, digits = 2) {
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
   });
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function fmtParameter(value, digits = 4, percent = false) {
+  if (value === null || value === undefined || value === "") return "--";
+  if (typeof value === "number") {
+    return percent ? `${fmt(value * 100, 1)}%` : fmt(value, digits);
+  }
+  return escapeHtml(value).replaceAll("\n", "<br>");
 }
 
 function registerChartHits(canvas, hits, width, height) {
@@ -570,16 +588,22 @@ function renderParamTables() {
   }
   els.coalRows.innerHTML = provinces.map((province) => {
     const params = state.data.params[province];
-    return `<tr><td>${province}</td><td>${fmt(params?.coalBenchmark2025, 4)}</td></tr>`;
+    return `<tr><td>${province}</td><td>${fmtParameter(params?.coalBenchmark2025, 4)}</td></tr>`;
   }).join("");
 
-  els.mechanismRows.innerHTML = provinces.flatMap((province) => {
+  const mechanismYears = [...new Set(Object.values(state.data.params)
+    .flatMap((params) => Object.keys(params.mechanism || {})))].sort()
+    .filter((year) => selectedYears.has(String(year)));
+  els.mechanismHead.innerHTML = `<tr><th>省份</th>${mechanismYears.map((year) => `
+    <th>${year}年机制竞价结果<br>（元/kWh）</th>
+    <th>${year}年机制竞价增量执行比例</th>
+  `).join("")}</tr>`;
+  els.mechanismRows.innerHTML = provinces.map((province) => {
     const mechanism = state.data.params[province]?.mechanism || {};
-    const rows = Object.entries(mechanism).filter(([year]) => selectedYears.has(String(year)));
-    if (!rows.length) return [`<tr><td>${province}</td><td>--</td><td>--</td><td>--</td></tr>`];
-    return rows.map(([year, item]) =>
-      `<tr><td>${province}</td><td>${year}</td><td>${fmt(item.price, 4)}</td><td>${fmt(item.ratio === null || item.ratio === undefined ? null : item.ratio * 100, 1)}%</td></tr>`
-    );
+    return `<tr><td>${province}</td>${mechanismYears.map((year) => {
+      const item = mechanism[year] || {};
+      return `<td>${fmtParameter(item.price, 4)}</td><td>${fmtParameter(item.ratio, 1, true)}</td>`;
+    }).join("")}</tr>`;
   }).join("");
 
   const months = [...new Set(Object.values(state.data.params)
@@ -588,7 +612,7 @@ function renderParamTables() {
   els.settlementHead.innerHTML = `<tr><th>省份</th>${months.map((month) => `<th>${month}</th>`).join("")}</tr>`;
   els.settlementRows.innerHTML = provinces.map((province) => {
     const settlement = state.data.params[province]?.settlement || {};
-    return `<tr><td>${province}</td>${months.map((month) => `<td>${fmt(settlement[month], 5)}</td>`).join("")}</tr>`;
+    return `<tr><td>${province}</td>${months.map((month) => `<td>${fmtParameter(settlement[month], 5)}</td>`).join("")}</tr>`;
   }).join("");
 }
 

@@ -115,6 +115,24 @@ def to_float(value: Any) -> float | None:
         return None
 
 
+def parameter_value(value: Any) -> float | str | None:
+    number = to_float(value)
+    if number is not None:
+        return number
+    text = cell_text(value)
+    return text or None
+
+
+def parameter_month(value: Any) -> str | None:
+    if isinstance(value, (datetime, date)):
+        return value.strftime("%Y-%m")
+    text = cell_text(value)
+    match = re.search(r"(20\d{2})[-/.年]?(0?[1-9]|1[0-2])", text)
+    if not match:
+        return None
+    return f"{int(match.group(1)):04d}-{int(match.group(2)):02d}"
+
+
 def normalize_date(value: Any) -> str | None:
     if isinstance(value, datetime):
         return value.strftime("%Y-%m-%d")
@@ -534,23 +552,24 @@ def load_params() -> dict[str, dict[str, Any]]:
             continue
         params = {
             "region": cell_text(row[1] if len(row) > 1 else ""),
-            "coalBenchmark2025": to_float(row[3] if len(row) > 3 else None),
+            "coalBenchmark2025": parameter_value(row[3] if len(row) > 3 else None),
             "mechanism": {},
             "settlement": {},
         }
         for idx, label in enumerate(header1):
             year_match = re.search(r"(20\d{2})年机制竞价", label)
-            if year_match and idx < len(row):
+            if year_match and "执行比例" not in label and idx < len(row):
                 year = year_match.group(1)
-                params["mechanism"].setdefault(year, {})["price"] = to_float(row[idx])
+                params["mechanism"].setdefault(year, {})["price"] = parameter_value(row[idx])
             if "执行比例" in label and idx < len(row):
                 year_match = re.search(r"(20\d{2})年", label)
                 if year_match:
                     year = year_match.group(1)
-                    params["mechanism"].setdefault(year, {})["ratio"] = to_float(row[idx])
+                    params["mechanism"].setdefault(year, {})["ratio"] = parameter_value(row[idx])
         for idx, month_cell in enumerate(header2):
-            if isinstance(month_cell, (datetime, date)) and idx < len(row):
-                params["settlement"][month_cell.strftime("%Y-%m")] = to_float(row[idx])
+            month = parameter_month(month_cell)
+            if month and idx < len(row):
+                params["settlement"][month] = parameter_value(row[idx])
         rows[province] = params
     return rows
 
