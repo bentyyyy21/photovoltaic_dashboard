@@ -1,0 +1,1793 @@
+{
+  "cacheId": "2026",
+  "years": [
+    2026
+  ],
+  "generatedAt": "2026-07-14T13:31:24",
+  "monthly": [
+    {
+      "province": "云南",
+      "month": "2026-01",
+      "market": "实时",
+      "weightedAvg": 183.77880748795835,
+      "volume": 869.7484939275988,
+      "points": 2976
+    },
+    {
+      "province": "云南",
+      "month": "2026-01",
+      "market": "日前",
+      "weightedAvg": 176.94011389934423,
+      "volume": 869.7484939275988,
+      "points": 2976
+    },
+    {
+      "province": "云南",
+      "month": "2026-02",
+      "market": "实时",
+      "weightedAvg": 98.2163908105396,
+      "volume": 785.5792848378309,
+      "points": 2688
+    },
+    {
+      "province": "云南",
+      "month": "2026-02",
+      "market": "日前",
+      "weightedAvg": 82.28925141441528,
+      "volume": 785.5792848378309,
+      "points": 2688
+    },
+    {
+      "province": "云南",
+      "month": "2026-03",
+      "market": "实时",
+      "weightedAvg": 233.23148977168896,
+      "volume": 869.7484939275988,
+      "points": 2976
+    },
+    {
+      "province": "云南",
+      "month": "2026-03",
+      "market": "日前",
+      "weightedAvg": 150.62566534008766,
+      "volume": 869.7484939275988,
+      "points": 2976
+    },
+    {
+      "province": "云南",
+      "month": "2026-04",
+      "market": "实时",
+      "weightedAvg": 271.9371934815065,
+      "volume": 841.6920908976762,
+      "points": 2880
+    },
+    {
+      "province": "云南",
+      "month": "2026-04",
+      "market": "日前",
+      "weightedAvg": 231.84707171185931,
+      "volume": 841.6920908976762,
+      "points": 2880
+    },
+    {
+      "province": "云南",
+      "month": "2026-05",
+      "market": "实时",
+      "weightedAvg": 210.70164418626356,
+      "volume": 869.7484939275988,
+      "points": 2976
+    },
+    {
+      "province": "云南",
+      "month": "2026-05",
+      "market": "日前",
+      "weightedAvg": 185.06191750780522,
+      "volume": 869.7484939275988,
+      "points": 2976
+    },
+    {
+      "province": "云南",
+      "month": "2026-06",
+      "market": "实时",
+      "weightedAvg": 125.21101371897322,
+      "volume": 841.6920908976762,
+      "points": 2880
+    },
+    {
+      "province": "云南",
+      "month": "2026-06",
+      "market": "日前",
+      "weightedAvg": 142.97629868107296,
+      "volume": 841.6920908976762,
+      "points": 2880
+    },
+    {
+      "province": "冀南",
+      "month": "2026-01",
+      "market": "实时",
+      "weightedAvg": 300.8408187146148,
+      "volume": 5856692.200000007,
+      "points": 2976
+    },
+    {
+      "province": "冀南",
+      "month": "2026-01",
+      "market": "日前",
+      "weightedAvg": 233.177271582481,
+      "volume": 5856692.200000007,
+      "points": 2976
+    },
+    {
+      "province": "冀南",
+      "month": "2026-02",
+      "market": "实时",
+      "weightedAvg": 166.40090417127215,
+      "volume": 2439814.3000000003,
+      "points": 1824
+    },
+    {
+      "province": "冀南",
+      "month": "2026-02",
+      "market": "日前",
+      "weightedAvg": 181.52309410681664,
+      "volume": 3225428.4000000027,
+      "points": 2304
+    },
+    {
+      "province": "冀南",
+      "month": "2026-03",
+      "market": "实时",
+      "weightedAvg": 213.7295870124716,
+      "volume": 6317751.799999999,
+      "points": 2976
+    },
+    {
+      "province": "冀南",
+      "month": "2026-03",
+      "market": "日前",
+      "weightedAvg": 178.87024732817153,
+      "volume": 6317751.799999999,
+      "points": 2976
+    },
+    {
+      "province": "冀南",
+      "month": "2026-04",
+      "market": "实时",
+      "weightedAvg": 185.9495283369179,
+      "volume": 7959357.099999989,
+      "points": 2880
+    },
+    {
+      "province": "冀南",
+      "month": "2026-04",
+      "market": "日前",
+      "weightedAvg": 174.9733486930751,
+      "volume": 7959357.099999989,
+      "points": 2880
+    },
+    {
+      "province": "冀南",
+      "month": "2026-05",
+      "market": "实时",
+      "weightedAvg": 187.27868186212683,
+      "volume": 7802580.599999994,
+      "points": 2976
+    },
+    {
+      "province": "冀南",
+      "month": "2026-05",
+      "market": "日前",
+      "weightedAvg": 180.7285378541303,
+      "volume": 7802580.599999994,
+      "points": 2976
+    },
+    {
+      "province": "冀南",
+      "month": "2026-06",
+      "market": "实时",
+      "weightedAvg": 200.12429653579778,
+      "volume": 841.6920908976762,
+      "points": 2879
+    },
+    {
+      "province": "冀南",
+      "month": "2026-06",
+      "market": "日前",
+      "weightedAvg": 241.76462943044746,
+      "volume": 841.6920908976762,
+      "points": 2879
+    },
+    {
+      "province": "吉林",
+      "month": "2026-01",
+      "market": "实时",
+      "weightedAvg": 400.84248702226284,
+      "volume": 2206950.0500000054,
+      "points": 2976
+    },
+    {
+      "province": "吉林",
+      "month": "2026-01",
+      "market": "日前",
+      "weightedAvg": 390.82679786649317,
+      "volume": 2206950.0500000054,
+      "points": 2976
+    },
+    {
+      "province": "吉林",
+      "month": "2026-02",
+      "market": "实时",
+      "weightedAvg": 210.1063366583805,
+      "volume": 2191243.089999998,
+      "points": 2688
+    },
+    {
+      "province": "吉林",
+      "month": "2026-02",
+      "market": "日前",
+      "weightedAvg": 210.57476473876764,
+      "volume": 2191243.089999998,
+      "points": 2688
+    },
+    {
+      "province": "吉林",
+      "month": "2026-03",
+      "market": "实时",
+      "weightedAvg": 327.14076440634165,
+      "volume": 1588235.6199999994,
+      "points": 1632
+    },
+    {
+      "province": "吉林",
+      "month": "2026-03",
+      "market": "日前",
+      "weightedAvg": 327.65605812702887,
+      "volume": 1689744.7099999995,
+      "points": 1728
+    },
+    {
+      "province": "吉林",
+      "month": "2026-04",
+      "market": "实时",
+      "weightedAvg": 253.04410567195538,
+      "volume": 2730641.5200000014,
+      "points": 2784
+    },
+    {
+      "province": "吉林",
+      "month": "2026-04",
+      "market": "日前",
+      "weightedAvg": 265.2433617048596,
+      "volume": 2797724.0100000026,
+      "points": 2880
+    },
+    {
+      "province": "吉林",
+      "month": "2026-05",
+      "market": "实时",
+      "weightedAvg": 292.25354895272994,
+      "volume": 2871959.652806066,
+      "points": 2976
+    },
+    {
+      "province": "吉林",
+      "month": "2026-05",
+      "market": "日前",
+      "weightedAvg": 260.7465490789718,
+      "volume": 2871931.5964030363,
+      "points": 2880
+    },
+    {
+      "province": "安徽",
+      "month": "2026-01",
+      "market": "实时",
+      "weightedAvg": 211.3098475167055,
+      "volume": 12550023.970000006,
+      "points": 2976
+    },
+    {
+      "province": "安徽",
+      "month": "2026-01",
+      "market": "日前",
+      "weightedAvg": 213.00402227285028,
+      "volume": 14684877.48,
+      "points": 2976
+    },
+    {
+      "province": "安徽",
+      "month": "2026-02",
+      "market": "实时",
+      "weightedAvg": 157.5875202021756,
+      "volume": 13512240.259999989,
+      "points": 2688
+    },
+    {
+      "province": "安徽",
+      "month": "2026-02",
+      "market": "日前",
+      "weightedAvg": 111.68402664054378,
+      "volume": 15487717.719999984,
+      "points": 2688
+    },
+    {
+      "province": "安徽",
+      "month": "2026-03",
+      "market": "实时",
+      "weightedAvg": 177.05346245550405,
+      "volume": 18121300.59999999,
+      "points": 2976
+    },
+    {
+      "province": "安徽",
+      "month": "2026-03",
+      "market": "日前",
+      "weightedAvg": 140.07486510831762,
+      "volume": 18224316.440000005,
+      "points": 2976
+    },
+    {
+      "province": "安徽",
+      "month": "2026-04",
+      "market": "实时",
+      "weightedAvg": 177.5154825808671,
+      "volume": 20161314.220000047,
+      "points": 2880
+    },
+    {
+      "province": "安徽",
+      "month": "2026-04",
+      "market": "日前",
+      "weightedAvg": 131.76078787856642,
+      "volume": 21176248.10000002,
+      "points": 2880
+    },
+    {
+      "province": "安徽",
+      "month": "2026-05",
+      "market": "实时",
+      "weightedAvg": 117.02965346040672,
+      "volume": 24568541.819999952,
+      "points": 2976
+    },
+    {
+      "province": "安徽",
+      "month": "2026-05",
+      "market": "日前",
+      "weightedAvg": 61.098194780458826,
+      "volume": 27353394.740000043,
+      "points": 2976
+    },
+    {
+      "province": "安徽",
+      "month": "2026-06",
+      "market": "实时",
+      "weightedAvg": 111.42738515513834,
+      "volume": 23887923.150000017,
+      "points": 2880
+    },
+    {
+      "province": "安徽",
+      "month": "2026-06",
+      "market": "日前",
+      "weightedAvg": 96.13024255425323,
+      "volume": 27678165.640000015,
+      "points": 2880
+    },
+    {
+      "province": "山东",
+      "month": "2026-01",
+      "market": "实时",
+      "weightedAvg": 151.41263311477593,
+      "volume": 10093405.449999992,
+      "points": 2976
+    },
+    {
+      "province": "山东",
+      "month": "2026-01",
+      "market": "日前",
+      "weightedAvg": 145.9718776165349,
+      "volume": 12101255.330000015,
+      "points": 2976
+    },
+    {
+      "province": "山东",
+      "month": "2026-02",
+      "market": "实时",
+      "weightedAvg": 68.6387783605769,
+      "volume": 7141830.450000009,
+      "points": 2688
+    },
+    {
+      "province": "山东",
+      "month": "2026-02",
+      "market": "日前",
+      "weightedAvg": 17.519143536671795,
+      "volume": 13821527.800000006,
+      "points": 2688
+    },
+    {
+      "province": "山东",
+      "month": "2026-03",
+      "market": "实时",
+      "weightedAvg": 122.82036479750913,
+      "volume": 11484882.699999979,
+      "points": 2976
+    },
+    {
+      "province": "山东",
+      "month": "2026-03",
+      "market": "日前",
+      "weightedAvg": 90.73454759067351,
+      "volume": 15670597.249999978,
+      "points": 2976
+    },
+    {
+      "province": "山东",
+      "month": "2026-04",
+      "market": "实时",
+      "weightedAvg": 58.89593408292222,
+      "volume": 13536337.200000066,
+      "points": 2880
+    },
+    {
+      "province": "山东",
+      "month": "2026-04",
+      "market": "日前",
+      "weightedAvg": 31.002898539562437,
+      "volume": 19354751.140000004,
+      "points": 2880
+    },
+    {
+      "province": "山东",
+      "month": "2026-05",
+      "market": "实时",
+      "weightedAvg": 69.48548637929278,
+      "volume": 12072723.260000002,
+      "points": 2976
+    },
+    {
+      "province": "山东",
+      "month": "2026-05",
+      "market": "日前",
+      "weightedAvg": 37.85914606092246,
+      "volume": 18547395.260000013,
+      "points": 2976
+    },
+    {
+      "province": "山东",
+      "month": "2026-06",
+      "market": "实时",
+      "weightedAvg": 163.99937283231873,
+      "volume": 15323270.55000001,
+      "points": 2880
+    },
+    {
+      "province": "山东",
+      "month": "2026-06",
+      "market": "日前",
+      "weightedAvg": 67.5195056040224,
+      "volume": 20133406.51999998,
+      "points": 2880
+    },
+    {
+      "province": "山西",
+      "month": "2026-01",
+      "market": "实时",
+      "weightedAvg": 87.2962176134002,
+      "volume": 11795111.84900003,
+      "points": 2976
+    },
+    {
+      "province": "山西",
+      "month": "2026-01",
+      "market": "日前",
+      "weightedAvg": 66.88601042351934,
+      "volume": 14048042.359999977,
+      "points": 2976
+    },
+    {
+      "province": "山西",
+      "month": "2026-02",
+      "market": "实时",
+      "weightedAvg": 51.962877408997116,
+      "volume": 8737735.746000007,
+      "points": 2688
+    },
+    {
+      "province": "山西",
+      "month": "2026-02",
+      "market": "日前",
+      "weightedAvg": 36.43131390458501,
+      "volume": 14755002.470000045,
+      "points": 2688
+    },
+    {
+      "province": "山西",
+      "month": "2026-03",
+      "market": "实时",
+      "weightedAvg": 99.57993011525608,
+      "volume": 13033620.069000022,
+      "points": 2976
+    },
+    {
+      "province": "山西",
+      "month": "2026-03",
+      "market": "日前",
+      "weightedAvg": 92.36666052560768,
+      "volume": 16174892.37999998,
+      "points": 2976
+    },
+    {
+      "province": "山西",
+      "month": "2026-04",
+      "market": "实时",
+      "weightedAvg": 71.4731969853076,
+      "volume": 14679368.124000033,
+      "points": 2880
+    },
+    {
+      "province": "山西",
+      "month": "2026-04",
+      "market": "日前",
+      "weightedAvg": 61.71142283893389,
+      "volume": 18927683.070000026,
+      "points": 2880
+    },
+    {
+      "province": "山西",
+      "month": "2026-05",
+      "market": "实时",
+      "weightedAvg": 89.68365254433824,
+      "volume": 14406314.540999971,
+      "points": 2976
+    },
+    {
+      "province": "山西",
+      "month": "2026-05",
+      "market": "日前",
+      "weightedAvg": 81.34315982616427,
+      "volume": 19096899.84999999,
+      "points": 2976
+    },
+    {
+      "province": "山西",
+      "month": "2026-06",
+      "market": "实时",
+      "weightedAvg": 119.19647753653484,
+      "volume": 16775003.65700002,
+      "points": 2880
+    },
+    {
+      "province": "山西",
+      "month": "2026-06",
+      "market": "日前",
+      "weightedAvg": 102.02898476339496,
+      "volume": 21464695.610000018,
+      "points": 2880
+    },
+    {
+      "province": "广东",
+      "month": "2026-01",
+      "market": "实时",
+      "weightedAvg": 189.55503504150792,
+      "volume": 7199127.900699983,
+      "points": 2976
+    },
+    {
+      "province": "广东",
+      "month": "2026-01",
+      "market": "日前",
+      "weightedAvg": 232.47822021209976,
+      "volume": 241113.0,
+      "points": 2976
+    },
+    {
+      "province": "广东",
+      "month": "2026-02",
+      "market": "实时",
+      "weightedAvg": 117.14040315776165,
+      "volume": 5342189.491299992,
+      "points": 2688
+    },
+    {
+      "province": "广东",
+      "month": "2026-02",
+      "market": "日前",
+      "weightedAvg": 145.00124115345093,
+      "volume": 180155.0,
+      "points": 2688
+    },
+    {
+      "province": "广东",
+      "month": "2026-03",
+      "market": "实时",
+      "weightedAvg": 268.401753928602,
+      "volume": 7190981.045700011,
+      "points": 2976
+    },
+    {
+      "province": "广东",
+      "month": "2026-03",
+      "market": "日前",
+      "weightedAvg": 274.21303531280074,
+      "volume": 223506.0,
+      "points": 2976
+    },
+    {
+      "province": "广东",
+      "month": "2026-04",
+      "market": "实时",
+      "weightedAvg": 494.3115379787959,
+      "volume": 6273592.710300005,
+      "points": 2880
+    },
+    {
+      "province": "广东",
+      "month": "2026-04",
+      "market": "日前",
+      "weightedAvg": 435.8178663069546,
+      "volume": 200160.0,
+      "points": 2880
+    },
+    {
+      "province": "广东",
+      "month": "2026-05",
+      "market": "实时",
+      "weightedAvg": 388.0212027850928,
+      "volume": 7476831.2337000165,
+      "points": 2976
+    },
+    {
+      "province": "广东",
+      "month": "2026-05",
+      "market": "日前",
+      "weightedAvg": 333.5029885083022,
+      "volume": 142672.0,
+      "points": 2976
+    },
+    {
+      "province": "广东",
+      "month": "2026-06",
+      "market": "实时",
+      "weightedAvg": 417.1275572879318,
+      "volume": 7861024.214199996,
+      "points": 2880
+    },
+    {
+      "province": "广东",
+      "month": "2026-06",
+      "market": "日前",
+      "weightedAvg": 430.1964073212566,
+      "volume": 37646.0,
+      "points": 2880
+    },
+    {
+      "province": "广西",
+      "month": "2026-01",
+      "market": "实时",
+      "weightedAvg": 194.27892613188627,
+      "volume": 869.7484939275988,
+      "points": 2976
+    },
+    {
+      "province": "广西",
+      "month": "2026-01",
+      "market": "日前",
+      "weightedAvg": 198.7244098699564,
+      "volume": 869.7484939275988,
+      "points": 2976
+    },
+    {
+      "province": "广西",
+      "month": "2026-02",
+      "market": "实时",
+      "weightedAvg": 135.85084931212774,
+      "volume": 785.5792848378309,
+      "points": 2688
+    },
+    {
+      "province": "广西",
+      "month": "2026-02",
+      "market": "日前",
+      "weightedAvg": 159.7681643376475,
+      "volume": 785.5792848378309,
+      "points": 2688
+    },
+    {
+      "province": "广西",
+      "month": "2026-03",
+      "market": "实时",
+      "weightedAvg": 186.20064218585205,
+      "volume": 869.7484939275988,
+      "points": 2976
+    },
+    {
+      "province": "广西",
+      "month": "2026-03",
+      "market": "日前",
+      "weightedAvg": 190.88157511555505,
+      "volume": 869.7484939275988,
+      "points": 2976
+    },
+    {
+      "province": "广西",
+      "month": "2026-04",
+      "market": "实时",
+      "weightedAvg": 274.44631235112803,
+      "volume": 841.6920908976762,
+      "points": 2880
+    },
+    {
+      "province": "广西",
+      "month": "2026-04",
+      "market": "日前",
+      "weightedAvg": 259.4195579575651,
+      "volume": 841.6920908976762,
+      "points": 2880
+    },
+    {
+      "province": "广西",
+      "month": "2026-05",
+      "market": "实时",
+      "weightedAvg": 210.28063198533437,
+      "volume": 869.7484939275988,
+      "points": 2976
+    },
+    {
+      "province": "广西",
+      "month": "2026-05",
+      "market": "日前",
+      "weightedAvg": 225.23927711878295,
+      "volume": 869.7484939275988,
+      "points": 2976
+    },
+    {
+      "province": "广西",
+      "month": "2026-06",
+      "market": "实时",
+      "weightedAvg": 175.62791705135632,
+      "volume": 841.6920908976762,
+      "points": 2880
+    },
+    {
+      "province": "广西",
+      "month": "2026-06",
+      "market": "日前",
+      "weightedAvg": 224.77917474858205,
+      "volume": 841.6920908976762,
+      "points": 2880
+    },
+    {
+      "province": "江苏",
+      "month": "2026-01",
+      "market": "实时",
+      "weightedAvg": 274.80647136969463,
+      "volume": 5704770.510000018,
+      "points": 2976
+    },
+    {
+      "province": "江苏",
+      "month": "2026-01",
+      "market": "日前",
+      "weightedAvg": 266.80322882326686,
+      "volume": 6652860.569999992,
+      "points": 2976
+    },
+    {
+      "province": "江苏",
+      "month": "2026-03",
+      "market": "实时",
+      "weightedAvg": 253.5586637998396,
+      "volume": 6601752.24000001,
+      "points": 2976
+    },
+    {
+      "province": "江苏",
+      "month": "2026-03",
+      "market": "日前",
+      "weightedAvg": 256.35882437375426,
+      "volume": 8374977.370000006,
+      "points": 2976
+    },
+    {
+      "province": "江苏",
+      "month": "2026-04",
+      "market": "实时",
+      "weightedAvg": 269.4808414131766,
+      "volume": 6572609.930000004,
+      "points": 2880
+    },
+    {
+      "province": "江苏",
+      "month": "2026-04",
+      "market": "日前",
+      "weightedAvg": 251.76251403765409,
+      "volume": 8969091.279999984,
+      "points": 2880
+    },
+    {
+      "province": "江苏",
+      "month": "2026-05",
+      "market": "实时",
+      "weightedAvg": 285.06215650194264,
+      "volume": 7886143.230000023,
+      "points": 2976
+    },
+    {
+      "province": "江苏",
+      "month": "2026-05",
+      "market": "日前",
+      "weightedAvg": 255.84929414276075,
+      "volume": 12008721.499999996,
+      "points": 2976
+    },
+    {
+      "province": "江苏",
+      "month": "2026-06",
+      "market": "实时",
+      "weightedAvg": 302.1269760329777,
+      "volume": 8421214.71999999,
+      "points": 2880
+    },
+    {
+      "province": "江苏",
+      "month": "2026-06",
+      "market": "日前",
+      "weightedAvg": 278.3304726335107,
+      "volume": 11427742.17,
+      "points": 2880
+    },
+    {
+      "province": "江西",
+      "month": "2026-01",
+      "market": "实时",
+      "weightedAvg": 380.14389367581515,
+      "volume": 869.7484939275988,
+      "points": 2975
+    },
+    {
+      "province": "江西",
+      "month": "2026-01",
+      "market": "日前",
+      "weightedAvg": 130.6660051429828,
+      "volume": 3814615.2299999995,
+      "points": 2975
+    },
+    {
+      "province": "江西",
+      "month": "2026-02",
+      "market": "实时",
+      "weightedAvg": 267.3954461159305,
+      "volume": 785.5792848378309,
+      "points": 2688
+    },
+    {
+      "province": "江西",
+      "month": "2026-02",
+      "market": "日前",
+      "weightedAvg": 152.68210810450265,
+      "volume": 2995229.540000001,
+      "points": 2688
+    },
+    {
+      "province": "江西",
+      "month": "2026-03",
+      "market": "实时",
+      "weightedAvg": 308.37908153722293,
+      "volume": 869.7484939275988,
+      "points": 2976
+    },
+    {
+      "province": "江西",
+      "month": "2026-03",
+      "market": "日前",
+      "weightedAvg": 221.70946096894716,
+      "volume": 2759458.849999997,
+      "points": 2209
+    },
+    {
+      "province": "江西",
+      "month": "2026-04",
+      "market": "实时",
+      "weightedAvg": 217.51143345907317,
+      "volume": 841.6920908976762,
+      "points": 2880
+    },
+    {
+      "province": "江西",
+      "month": "2026-05",
+      "market": "实时",
+      "weightedAvg": 306.49081737741994,
+      "volume": 869.7484939275988,
+      "points": 2976
+    },
+    {
+      "province": "江西",
+      "month": "2026-05",
+      "market": "日前",
+      "weightedAvg": 228.53781683282173,
+      "volume": 4476601.579999998,
+      "points": 2975
+    },
+    {
+      "province": "江西",
+      "month": "2026-06",
+      "market": "实时",
+      "weightedAvg": 351.87942677060585,
+      "volume": 841.6920908976762,
+      "points": 2880
+    },
+    {
+      "province": "江西",
+      "month": "2026-06",
+      "market": "日前",
+      "weightedAvg": 288.6153923383426,
+      "volume": 4243062.329999996,
+      "points": 2880
+    },
+    {
+      "province": "海南",
+      "month": "2026-01",
+      "market": "实时",
+      "weightedAvg": 73.67989240243975,
+      "volume": 869.7484939275988,
+      "points": 2976
+    },
+    {
+      "province": "海南",
+      "month": "2026-01",
+      "market": "日前",
+      "weightedAvg": 164.07590606004598,
+      "volume": 869.7484939275988,
+      "points": 2976
+    },
+    {
+      "province": "海南",
+      "month": "2026-02",
+      "market": "实时",
+      "weightedAvg": 56.416172127151015,
+      "volume": 785.5792848378309,
+      "points": 2688
+    },
+    {
+      "province": "海南",
+      "month": "2026-02",
+      "market": "日前",
+      "weightedAvg": 88.14963732021332,
+      "volume": 785.5792848378309,
+      "points": 2688
+    },
+    {
+      "province": "海南",
+      "month": "2026-03",
+      "market": "实时",
+      "weightedAvg": 68.95769465929426,
+      "volume": 869.7484939275988,
+      "points": 2976
+    },
+    {
+      "province": "海南",
+      "month": "2026-03",
+      "market": "日前",
+      "weightedAvg": 103.80061480109555,
+      "volume": 869.7484939275988,
+      "points": 2976
+    },
+    {
+      "province": "海南",
+      "month": "2026-04",
+      "market": "实时",
+      "weightedAvg": 233.37045448478807,
+      "volume": 841.6920908976762,
+      "points": 2880
+    },
+    {
+      "province": "海南",
+      "month": "2026-04",
+      "market": "日前",
+      "weightedAvg": 222.15033353548498,
+      "volume": 841.6920908976762,
+      "points": 2880
+    },
+    {
+      "province": "海南",
+      "month": "2026-05",
+      "market": "实时",
+      "weightedAvg": 160.92691201934684,
+      "volume": 869.7484939275988,
+      "points": 2976
+    },
+    {
+      "province": "海南",
+      "month": "2026-05",
+      "market": "日前",
+      "weightedAvg": 210.0434667047892,
+      "volume": 869.7484939275988,
+      "points": 2976
+    },
+    {
+      "province": "海南",
+      "month": "2026-06",
+      "market": "实时",
+      "weightedAvg": 192.29233972498946,
+      "volume": 841.6920908976762,
+      "points": 2880
+    },
+    {
+      "province": "海南",
+      "month": "2026-06",
+      "market": "日前",
+      "weightedAvg": 251.09933615304692,
+      "volume": 841.6920908976762,
+      "points": 2880
+    },
+    {
+      "province": "湖北",
+      "month": "2026-01",
+      "market": "实时",
+      "weightedAvg": 197.01011872517546,
+      "volume": 3045702.8099999987,
+      "points": 744
+    },
+    {
+      "province": "湖北",
+      "month": "2026-01",
+      "market": "日前",
+      "weightedAvg": 173.4778335588495,
+      "volume": 3045702.8099999987,
+      "points": 744
+    },
+    {
+      "province": "湖北",
+      "month": "2026-02",
+      "market": "实时",
+      "weightedAvg": 148.80359798768208,
+      "volume": 2812386.5600000005,
+      "points": 672
+    },
+    {
+      "province": "湖北",
+      "month": "2026-02",
+      "market": "日前",
+      "weightedAvg": 120.04116620124223,
+      "volume": 2812386.5600000005,
+      "points": 672
+    },
+    {
+      "province": "湖北",
+      "month": "2026-03",
+      "market": "实时",
+      "weightedAvg": 148.66716234346126,
+      "volume": 3156051.289999999,
+      "points": 744
+    },
+    {
+      "province": "湖北",
+      "month": "2026-03",
+      "market": "日前",
+      "weightedAvg": 156.45838232254496,
+      "volume": 3156051.289999999,
+      "points": 744
+    },
+    {
+      "province": "湖北",
+      "month": "2026-04",
+      "market": "实时",
+      "weightedAvg": 133.10670644949775,
+      "volume": 3908699.5300000017,
+      "points": 720
+    },
+    {
+      "province": "湖北",
+      "month": "2026-04",
+      "market": "日前",
+      "weightedAvg": 102.77025613166028,
+      "volume": 3908699.5300000017,
+      "points": 720
+    },
+    {
+      "province": "湖北",
+      "month": "2026-05",
+      "market": "实时",
+      "weightedAvg": 126.45043747787953,
+      "volume": 4544985.23,
+      "points": 744
+    },
+    {
+      "province": "湖北",
+      "month": "2026-05",
+      "market": "日前",
+      "weightedAvg": 81.19822634026471,
+      "volume": 4544985.23,
+      "points": 744
+    },
+    {
+      "province": "湖北",
+      "month": "2026-06",
+      "market": "实时",
+      "weightedAvg": 144.20572749167428,
+      "volume": 4796828.779999999,
+      "points": 720
+    },
+    {
+      "province": "湖北",
+      "month": "2026-06",
+      "market": "日前",
+      "weightedAvg": 97.23079306833216,
+      "volume": 4796828.779999999,
+      "points": 720
+    },
+    {
+      "province": "湖南",
+      "month": "2026-01",
+      "market": "实时",
+      "weightedAvg": 336.3862207671059,
+      "volume": 5169043.7700000005,
+      "points": 2688
+    },
+    {
+      "province": "湖南",
+      "month": "2026-01",
+      "market": "日前",
+      "weightedAvg": 344.44899875782255,
+      "volume": 5892077.0,
+      "points": 2976
+    },
+    {
+      "province": "湖南",
+      "month": "2026-02",
+      "market": "实时",
+      "weightedAvg": 290.13095867874205,
+      "volume": 4240178.050000003,
+      "points": 2496
+    },
+    {
+      "province": "湖南",
+      "month": "2026-02",
+      "market": "日前",
+      "weightedAvg": 355.0241398471835,
+      "volume": 4418380.0,
+      "points": 2688
+    },
+    {
+      "province": "湖南",
+      "month": "2026-03",
+      "market": "实时",
+      "weightedAvg": 273.1100495331702,
+      "volume": 4817728.999999999,
+      "points": 2688
+    },
+    {
+      "province": "湖南",
+      "month": "2026-03",
+      "market": "日前",
+      "weightedAvg": 274.5570016338085,
+      "volume": 6083331.0,
+      "points": 2976
+    },
+    {
+      "province": "湖南",
+      "month": "2026-04",
+      "market": "实时",
+      "weightedAvg": 50.71155979968531,
+      "volume": 4654398.329999996,
+      "points": 2784
+    },
+    {
+      "province": "湖南",
+      "month": "2026-04",
+      "market": "日前",
+      "weightedAvg": 15.136718739019685,
+      "volume": 6545796.0,
+      "points": 2880
+    },
+    {
+      "province": "湖南",
+      "month": "2026-05",
+      "market": "实时",
+      "weightedAvg": 104.57715596162095,
+      "volume": 7690829.849999994,
+      "points": 2976
+    },
+    {
+      "province": "湖南",
+      "month": "2026-05",
+      "market": "日前",
+      "weightedAvg": 82.9655942258301,
+      "volume": 8741170.0,
+      "points": 2976
+    },
+    {
+      "province": "湖南",
+      "month": "2026-06",
+      "market": "实时",
+      "weightedAvg": 59.56455831758831,
+      "volume": 8976967.670000006,
+      "points": 2880
+    },
+    {
+      "province": "湖南",
+      "month": "2026-06",
+      "market": "日前",
+      "weightedAvg": 47.876662735412964,
+      "volume": 10085417.0,
+      "points": 2880
+    },
+    {
+      "province": "甘肃",
+      "month": "2026-01",
+      "market": "实时",
+      "weightedAvg": 109.48590919144002,
+      "volume": 12846617.64699999,
+      "points": 2976
+    },
+    {
+      "province": "甘肃",
+      "month": "2026-01",
+      "market": "日前",
+      "weightedAvg": 99.84228271214496,
+      "volume": 16613213.050000018,
+      "points": 2976
+    },
+    {
+      "province": "甘肃",
+      "month": "2026-02",
+      "market": "实时",
+      "weightedAvg": 60.552618473783774,
+      "volume": 11758472.718,
+      "points": 2688
+    },
+    {
+      "province": "甘肃",
+      "month": "2026-02",
+      "market": "日前",
+      "weightedAvg": 55.748407858751996,
+      "volume": 17420948.509999994,
+      "points": 2688
+    },
+    {
+      "province": "甘肃",
+      "month": "2026-03",
+      "market": "实时",
+      "weightedAvg": 104.23406961736598,
+      "volume": 13910580.908999994,
+      "points": 2976
+    },
+    {
+      "province": "甘肃",
+      "month": "2026-03",
+      "market": "日前",
+      "weightedAvg": 98.15822005667289,
+      "volume": 18973222.893000018,
+      "points": 2976
+    },
+    {
+      "province": "甘肃",
+      "month": "2026-04",
+      "market": "实时",
+      "weightedAvg": 69.86891594700934,
+      "volume": 15534839.82500003,
+      "points": 2880
+    },
+    {
+      "province": "甘肃",
+      "month": "2026-04",
+      "market": "日前",
+      "weightedAvg": 62.208398150333295,
+      "volume": 21163261.949999984,
+      "points": 2880
+    },
+    {
+      "province": "甘肃",
+      "month": "2026-05",
+      "market": "实时",
+      "weightedAvg": 71.06840861813129,
+      "volume": 15954527.605000021,
+      "points": 2976
+    },
+    {
+      "province": "甘肃",
+      "month": "2026-05",
+      "market": "日前",
+      "weightedAvg": 65.90845797388826,
+      "volume": 23036396.55000003,
+      "points": 2976
+    },
+    {
+      "province": "甘肃",
+      "month": "2026-06",
+      "market": "实时",
+      "weightedAvg": 117.30067337697395,
+      "volume": 16695623.177999979,
+      "points": 2880
+    },
+    {
+      "province": "甘肃",
+      "month": "2026-06",
+      "market": "日前",
+      "weightedAvg": 96.63461172530792,
+      "volume": 23968004.387000013,
+      "points": 2880
+    },
+    {
+      "province": "福建",
+      "month": "2026-01",
+      "market": "实时",
+      "weightedAvg": 354.3072146268709,
+      "volume": 5005363.499999992,
+      "points": 2976
+    },
+    {
+      "province": "福建",
+      "month": "2026-01",
+      "market": "日前",
+      "weightedAvg": 364.4443908882473,
+      "volume": 5587070.0,
+      "points": 2976
+    },
+    {
+      "province": "福建",
+      "month": "2026-02",
+      "market": "实时",
+      "weightedAvg": 314.2615068507727,
+      "volume": 5212614.6400000015,
+      "points": 2688
+    },
+    {
+      "province": "福建",
+      "month": "2026-02",
+      "market": "日前",
+      "weightedAvg": 354.8462034130372,
+      "volume": 5468912.0,
+      "points": 2688
+    },
+    {
+      "province": "福建",
+      "month": "2026-03",
+      "market": "实时",
+      "weightedAvg": 333.3147763588354,
+      "volume": 6797879.560000005,
+      "points": 2976
+    },
+    {
+      "province": "福建",
+      "month": "2026-03",
+      "market": "日前",
+      "weightedAvg": 358.2117497597918,
+      "volume": 6636951.0,
+      "points": 2976
+    },
+    {
+      "province": "福建",
+      "month": "2026-04",
+      "market": "实时",
+      "weightedAvg": 308.54016293717797,
+      "volume": 6391087.7299999995,
+      "points": 2879
+    },
+    {
+      "province": "福建",
+      "month": "2026-04",
+      "market": "日前",
+      "weightedAvg": 365.6724076097302,
+      "volume": 6251470.0,
+      "points": 2880
+    },
+    {
+      "province": "福建",
+      "month": "2026-05",
+      "market": "实时",
+      "weightedAvg": 331.29095159499474,
+      "volume": 7537537.440000002,
+      "points": 2976
+    },
+    {
+      "province": "福建",
+      "month": "2026-05",
+      "market": "日前",
+      "weightedAvg": 373.36002193236897,
+      "volume": 7536304.0,
+      "points": 2976
+    },
+    {
+      "province": "福建",
+      "month": "2026-06",
+      "market": "实时",
+      "weightedAvg": 323.1158339562316,
+      "volume": 6911117.309999999,
+      "points": 2880
+    },
+    {
+      "province": "福建",
+      "month": "2026-06",
+      "market": "日前",
+      "weightedAvg": 353.22920087380294,
+      "volume": 7018516.0,
+      "points": 2880
+    },
+    {
+      "province": "蒙东",
+      "month": "2026-01",
+      "market": "实时",
+      "weightedAvg": 101.57286971498975,
+      "volume": 3358773.27,
+      "points": 2976
+    },
+    {
+      "province": "蒙东",
+      "month": "2026-01",
+      "market": "日前",
+      "weightedAvg": 311.5899953866494,
+      "volume": 3358773.27,
+      "points": 2976
+    },
+    {
+      "province": "蒙东",
+      "month": "2026-02",
+      "market": "实时",
+      "weightedAvg": 3.487540079831707,
+      "volume": 3738164.399999997,
+      "points": 2688
+    },
+    {
+      "province": "蒙东",
+      "month": "2026-02",
+      "market": "日前",
+      "weightedAvg": 42.86910810886224,
+      "volume": 3738164.399999997,
+      "points": 2688
+    },
+    {
+      "province": "蒙东",
+      "month": "2026-03",
+      "market": "实时",
+      "weightedAvg": 247.22410782903455,
+      "volume": 869.7484939275988,
+      "points": 2975
+    },
+    {
+      "province": "蒙东",
+      "month": "2026-03",
+      "market": "日前",
+      "weightedAvg": 222.35793630528974,
+      "volume": 4850744.71,
+      "points": 2975
+    },
+    {
+      "province": "蒙东",
+      "month": "2026-04",
+      "market": "实时",
+      "weightedAvg": 117.53604812204497,
+      "volume": 813.6356878677535,
+      "points": 2785
+    },
+    {
+      "province": "蒙东",
+      "month": "2026-04",
+      "market": "日前",
+      "weightedAvg": 83.8741443613213,
+      "volume": 4277061.849999999,
+      "points": 2785
+    },
+    {
+      "province": "蒙东",
+      "month": "2026-05",
+      "market": "实时",
+      "weightedAvg": 235.25265778349873,
+      "volume": 869.7484939275988,
+      "points": 2975
+    },
+    {
+      "province": "蒙东",
+      "month": "2026-05",
+      "market": "日前",
+      "weightedAvg": 164.3892418125989,
+      "volume": 4811335.026403024,
+      "points": 2975
+    },
+    {
+      "province": "蒙东",
+      "month": "2026-06",
+      "market": "实时",
+      "weightedAvg": 384.7516371242835,
+      "volume": 841.6920908976762,
+      "points": 2880
+    },
+    {
+      "province": "蒙东",
+      "month": "2026-06",
+      "market": "日前",
+      "weightedAvg": 374.0644238692552,
+      "volume": 4620723.2900000075,
+      "points": 2880
+    },
+    {
+      "province": "贵州",
+      "month": "2026-01",
+      "market": "实时",
+      "weightedAvg": 394.0055793651791,
+      "volume": 869.7484939275988,
+      "points": 2976
+    },
+    {
+      "province": "贵州",
+      "month": "2026-01",
+      "market": "日前",
+      "weightedAvg": 401.63574580878355,
+      "volume": 869.7484939275988,
+      "points": 2976
+    },
+    {
+      "province": "贵州",
+      "month": "2026-02",
+      "market": "实时",
+      "weightedAvg": 311.60888426406365,
+      "volume": 785.5792848378309,
+      "points": 2688
+    },
+    {
+      "province": "贵州",
+      "month": "2026-02",
+      "market": "日前",
+      "weightedAvg": 354.914574038075,
+      "volume": 785.5792848378309,
+      "points": 2688
+    },
+    {
+      "province": "贵州",
+      "month": "2026-03",
+      "market": "实时",
+      "weightedAvg": 329.7572962598828,
+      "volume": 869.7484939275988,
+      "points": 2976
+    },
+    {
+      "province": "贵州",
+      "month": "2026-03",
+      "market": "日前",
+      "weightedAvg": 363.2262257262917,
+      "volume": 869.7484939275988,
+      "points": 2976
+    },
+    {
+      "province": "贵州",
+      "month": "2026-04",
+      "market": "实时",
+      "weightedAvg": 239.84234353778683,
+      "volume": 841.6920908976762,
+      "points": 2880
+    },
+    {
+      "province": "贵州",
+      "month": "2026-04",
+      "market": "日前",
+      "weightedAvg": 268.3950898866568,
+      "volume": 841.6920908976762,
+      "points": 2880
+    },
+    {
+      "province": "贵州",
+      "month": "2026-05",
+      "market": "实时",
+      "weightedAvg": 262.0669182974909,
+      "volume": 869.7484939275988,
+      "points": 2976
+    },
+    {
+      "province": "贵州",
+      "month": "2026-05",
+      "market": "日前",
+      "weightedAvg": 336.42177991704125,
+      "volume": 869.7484939275988,
+      "points": 2976
+    },
+    {
+      "province": "贵州",
+      "month": "2026-06",
+      "market": "实时",
+      "weightedAvg": 266.76202972843004,
+      "volume": 841.6920908976762,
+      "points": 2880
+    },
+    {
+      "province": "贵州",
+      "month": "2026-06",
+      "market": "日前",
+      "weightedAvg": 323.7137897485968,
+      "volume": 841.6920908976762,
+      "points": 2880
+    },
+    {
+      "province": "辽宁",
+      "month": "2026-01",
+      "market": "实时",
+      "weightedAvg": 52.59771020967707,
+      "volume": 2528244.6963999965,
+      "points": 2976
+    },
+    {
+      "province": "辽宁",
+      "month": "2026-01",
+      "market": "日前",
+      "weightedAvg": 94.32370191850593,
+      "volume": 3081721.0,
+      "points": 2976
+    },
+    {
+      "province": "辽宁",
+      "month": "2026-02",
+      "market": "实时",
+      "weightedAvg": 64.11352899010242,
+      "volume": 1903837.3600000013,
+      "points": 2688
+    },
+    {
+      "province": "辽宁",
+      "month": "2026-02",
+      "market": "日前",
+      "weightedAvg": 61.123693433638714,
+      "volume": 3138283.0,
+      "points": 2688
+    },
+    {
+      "province": "辽宁",
+      "month": "2026-03",
+      "market": "实时",
+      "weightedAvg": 212.10150808158275,
+      "volume": 3211156.2280000127,
+      "points": 2976
+    },
+    {
+      "province": "辽宁",
+      "month": "2026-03",
+      "market": "日前",
+      "weightedAvg": 209.86824224840402,
+      "volume": 3779641.0,
+      "points": 2976
+    },
+    {
+      "province": "辽宁",
+      "month": "2026-04",
+      "market": "实时",
+      "weightedAvg": 96.30823589361621,
+      "volume": 2717619.1927999863,
+      "points": 2880
+    },
+    {
+      "province": "辽宁",
+      "month": "2026-04",
+      "market": "日前",
+      "weightedAvg": 78.49835634008737,
+      "volume": 3567648.0,
+      "points": 2880
+    },
+    {
+      "province": "辽宁",
+      "month": "2026-05",
+      "market": "实时",
+      "weightedAvg": 172.00465838468628,
+      "volume": 2978216.5564000094,
+      "points": 2976
+    },
+    {
+      "province": "辽宁",
+      "month": "2026-05",
+      "market": "日前",
+      "weightedAvg": 124.51795882141741,
+      "volume": 3671990.0,
+      "points": 2976
+    },
+    {
+      "province": "辽宁",
+      "month": "2026-06",
+      "market": "实时",
+      "weightedAvg": 299.563767541696,
+      "volume": 3099838.2616000045,
+      "points": 2880
+    },
+    {
+      "province": "辽宁",
+      "month": "2026-06",
+      "market": "日前",
+      "weightedAvg": 248.5302445929348,
+      "volume": 3428431.0,
+      "points": 2880
+    },
+    {
+      "province": "陕西",
+      "month": "2026-01",
+      "market": "实时",
+      "weightedAvg": 188.2884512088477,
+      "volume": 869.7484939275988,
+      "points": 2976
+    },
+    {
+      "province": "陕西",
+      "month": "2026-01",
+      "market": "日前",
+      "weightedAvg": 170.31882932791655,
+      "volume": 869.7484939275988,
+      "points": 2976
+    },
+    {
+      "province": "陕西",
+      "month": "2026-02",
+      "market": "实时",
+      "weightedAvg": 70.73750400273995,
+      "volume": 785.5792848378309,
+      "points": 2688
+    },
+    {
+      "province": "陕西",
+      "month": "2026-02",
+      "market": "日前",
+      "weightedAvg": 61.57481179662484,
+      "volume": 785.5792848378309,
+      "points": 2688
+    },
+    {
+      "province": "陕西",
+      "month": "2026-03",
+      "market": "实时",
+      "weightedAvg": 129.16887960345227,
+      "volume": 869.7484939275988,
+      "points": 2976
+    },
+    {
+      "province": "陕西",
+      "month": "2026-03",
+      "market": "日前",
+      "weightedAvg": 113.97384974580335,
+      "volume": 869.7484939275988,
+      "points": 2976
+    },
+    {
+      "province": "陕西",
+      "month": "2026-04",
+      "market": "实时",
+      "weightedAvg": 52.24631422234694,
+      "volume": 505.01525453860455,
+      "points": 1728
+    },
+    {
+      "province": "陕西",
+      "month": "2026-04",
+      "market": "日前",
+      "weightedAvg": 34.776081030256655,
+      "volume": 561.1280605984497,
+      "points": 1920
+    },
+    {
+      "province": "陕西",
+      "month": "2026-05",
+      "market": "实时",
+      "weightedAvg": 36.9139391059727,
+      "volume": 841.6920908976762,
+      "points": 2880
+    },
+    {
+      "province": "陕西",
+      "month": "2026-05",
+      "market": "日前",
+      "weightedAvg": 28.906167040758135,
+      "volume": 869.7484939275988,
+      "points": 2976
+    },
+    {
+      "province": "陕西",
+      "month": "2026-06",
+      "market": "实时",
+      "weightedAvg": 56.776392014720635,
+      "volume": 841.6920908976762,
+      "points": 2880
+    },
+    {
+      "province": "陕西",
+      "month": "2026-06",
+      "market": "日前",
+      "weightedAvg": 55.345807509245105,
+      "volume": 841.6920908976762,
+      "points": 2880
+    }
+  ]
+}

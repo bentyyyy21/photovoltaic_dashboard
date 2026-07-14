@@ -1,0 +1,15 @@
+# Raw workbooks and Excel lock files stay local only.
+*.xlsx
+*.xls
+~$*
+
+# Local calculation caches contain field mappings and source metadata.
+.data-cache/
+.codex-spreadsheet/
+.agents/
+
+# Python and editor artifacts.
+__pycache__/
+*.py[cod]
+.DS_Store
+Thumbs.db
