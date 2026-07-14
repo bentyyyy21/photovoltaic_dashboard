@@ -59,8 +59,8 @@ PROVINCE_PRICE_PREFERENCES = {
         "实时": ["省内统一出清价格-日内"],
     },
     "甘肃": {
-        "日前": ["分区价格-统一结算点-日前电价"],
-        "实时": ["分区价格-统一结算点-日内电价"],
+        "日前": ["分区价格-统一结算点-日前电价", "统一结算点-日前电价"],
+        "实时": ["分区价格-统一结算点-日内电价", "统一结算点-日内电价"],
     },
     "辽宁": {
         "日前": ["统一出清价格（调控后）", "统一出清价格(调控后)"],
@@ -72,7 +72,17 @@ PROVINCE_PRICE_PREFERENCES = {
     },
 }
 
+PROVINCE_VOLUME_PREFERENCES = {
+    "辽宁": {
+        "日前": ["日前数据-新能源负荷-光伏", "新能源负荷-光伏"],
+        "实时": ["实时数据-新能源负荷-光伏", "新能源负荷-光伏"],
+    },
+}
+
+PROVINCES_WITHOUT_TYPICAL_VOLUME = {"甘肃"}
+
 SEPARATE_PRICE_FILE_RULES = {
+    "甘肃": ("分区节点电价",),
     "湖北": ("市场出清信息",),
     "福建": ("市场出清信息",),
     "吉林": ("省内出清价格",),
@@ -213,7 +223,7 @@ def market_column_score(header: str, market: str) -> int:
     return 9
 
 
-def select_volume_columns(headers: list[str]) -> dict[str, tuple[int, str, str]]:
+def select_volume_columns(headers: list[str], province: str | None = None) -> dict[str, tuple[int, str, str]]:
     result: dict[str, tuple[int, str, str]] = {}
     explicit = [
         (i, h) for i, h in enumerate(headers)
@@ -222,6 +232,12 @@ def select_volume_columns(headers: list[str]) -> dict[str, tuple[int, str, str]]
     ]
     for market in ("日前", "实时"):
         if explicit:
+            configured = PROVINCE_VOLUME_PREFERENCES.get(province or "", {}).get(market, [])
+            configured_matches = [item for token in configured for item in explicit if token in item[1]]
+            if configured_matches:
+                idx, header = configured_matches[0]
+                result[market] = (idx, header, "按省级维护说明使用光伏字段")
+                continue
             market_specific = [item for item in explicit if market_column_score(item[1], market) == 0]
             neutral = [
                 item for item in explicit
@@ -280,14 +296,25 @@ def price_candidates(headers: list[str], market: str, province: str | None = Non
     return configured_rows + [x for x in preferred if x not in configured_rows] + [x for x in rows if x not in configured_rows and x not in preferred]
 
 
-def neutral_price_candidates(headers: list[str]) -> list[tuple[int, str]]:
+def neutral_price_candidates(
+    headers: list[str],
+    market: str | None = None,
+    province: str | None = None,
+) -> list[tuple[int, str]]:
     rows = [
         (i, h) for i, h in enumerate(headers)
         if any(x in h or x in h.upper() for x in ("出清价格", "出清均价", "统一结算点电价", "节点均价", "节点电价", "电价", "加权均价", "PRICE"))
-        and not any(bad in h for bad in ("比例", "类型", "日期", "时刻", "预测", "调控后", "申报"))
+        and not any(bad in h for bad in ("比例", "类型", "日期", "时刻", "预测", "申报"))
     ]
-    preferred = [x for x in rows if any(good in x[1] for good in ("出清", "节点", "统一"))]
-    return preferred + [x for x in rows if x not in preferred]
+    configured = PROVINCE_PRICE_PREFERENCES.get(province or "", {}).get(market or "", [])
+    configured_rows = [x for token in configured for x in rows if token in x[1]]
+    preferred = [
+        x for x in rows
+        if any(good in x[1] for good in ("出清", "节点", "统一")) and "调控后" not in x[1]
+    ]
+    return configured_rows + [x for x in preferred if x not in configured_rows] + [
+        x for x in rows if x not in configured_rows and x not in preferred
+    ]
 
 
 def market_from_text(value: Any) -> str | None:
@@ -306,12 +333,22 @@ def row_price(
     inferred_market: str | None = None,
     province: str | None = None,
 ) -> tuple[float | None, str | None]:
+    configured = PROVINCE_PRICE_PREFERENCES.get(province or "", {}).get(market, [])
+    if inferred_market == market and configured:
+        configured_neutral = [
+            item for item in neutral_price_candidates(headers, market, province)
+            if any(token in item[1] for token in configured)
+        ]
+        for idx, header in configured_neutral:
+            value = to_float(row[idx] if idx < len(row) else None)
+            if value is not None:
+                return value, header
     for idx, header in price_candidates(headers, market, province):
         value = to_float(row[idx] if idx < len(row) else None)
         if value is not None:
             return value, header
     if inferred_market == market:
-        for idx, header in neutral_price_candidates(headers):
+        for idx, header in neutral_price_candidates(headers, market, province):
             value = to_float(row[idx] if idx < len(row) else None)
             if value is not None:
                 return value, header
@@ -324,23 +361,39 @@ def row_volume(
     t: str,
     typical_curve: dict[str, float],
     fallback_idx: int = -1,
+    allow_typical: bool = True,
 ) -> tuple[float | None, bool]:
     if idx < 0:
+        if not allow_typical:
+            return None, False
         return typical_curve.get(t, 0), True
     value = to_float(row[idx] if idx < len(row) else None)
     if value is None and fallback_idx >= 0:
         value = to_float(row[fallback_idx] if fallback_idx < len(row) else None)
     if value is None:
+        if not allow_typical:
+            return None, False
         return typical_curve.get(t, 0), True
     return value, False
 
 
-def selected_price_columns(headers: list[str], province: str | None = None) -> dict[str, str]:
+def selected_price_columns(
+    headers: list[str],
+    province: str | None = None,
+    inferred_market: str | None = None,
+) -> dict[str, str]:
     result = {}
     for market in ("日前", "实时"):
         candidates = price_candidates(headers, market, province)
+        configured = PROVINCE_PRICE_PREFERENCES.get(province or "", {}).get(market, [])
+        if inferred_market == market and configured:
+            configured_neutral = [
+                item for item in neutral_price_candidates(headers, market, province)
+                if any(token in item[1] for token in configured)
+            ]
+            candidates = configured_neutral + [item for item in candidates if item not in configured_neutral]
         if not candidates:
-            candidates = neutral_price_candidates(headers)
+            candidates = neutral_price_candidates(headers, market, province)
         if candidates:
             result[market] = " / ".join(header for _, header in candidates[:3])
     return result
@@ -372,6 +425,7 @@ def ingest_split_market_workbook(path: Path, province: str, typical_curve: dict[
 
     records: list[dict[str, Any]] = []
     used_typical = False
+    day_volumes: dict[str, float] = {}
     for row in day_ws.iter_rows(min_row=2, values_only=True):
         d, t = normalize_datetime(row[0] if row else None)
         if not d or not t:
@@ -381,6 +435,7 @@ def ingest_split_market_workbook(path: Path, province: str, typical_curve: dict[
         if volume is None:
             volume = typical_curve.get(t, 0)
             used_typical = True
+        day_volumes[dt] = volume
         price = to_float(row[day_price_col] if day_price_col < len(row) else None)
         if volume is not None and price is not None:
             records.append({
@@ -399,8 +454,10 @@ def ingest_split_market_workbook(path: Path, province: str, typical_curve: dict[
                 continue
             dt = f"{d}T{t}:00"
             price = to_float(row[real_price_col] if real_price_col < len(row) else None)
-            volume = typical_curve.get(t, 0)
-            used_typical = True
+            volume = day_volumes.get(dt)
+            if volume is None:
+                volume = typical_curve.get(t, 0)
+                used_typical = True
             if volume is not None and price is not None:
                 records.append({
                     "province": province,
@@ -419,11 +476,11 @@ def ingest_split_market_workbook(path: Path, province: str, typical_curve: dict[
         },
         "volumeColumns": {
             "日前": day_headers[day_volume_col],
-            "实时": "典型光伏曲线",
+            "实时": day_headers[day_volume_col],
         },
         "volumeSource": {
             "日前": "光伏字段；为空点使用典型曲线独立权重",
-            "实时": "实时表缺光伏字段，使用典型曲线独立权重",
+            "实时": "实时表缺光伏字段，按日期时刻复用日前光伏字段；仍缺失时使用典型曲线",
         },
         "records": len(records),
         "usesTypicalCurve": used_typical,
@@ -532,7 +589,7 @@ def ingest_standard_sheet(path: Path, province: str, typical_curve: dict[str, fl
 
     type_col = find_col(headers, lambda h: h == "类型" or h.endswith("-类型") or h == "电价类型")
     inferred_file_market = infer_market_from_filename(path.name)
-    volume_cols = select_volume_columns(headers)
+    volume_cols = select_volume_columns(headers, province)
     records: list[dict[str, Any]] = []
     needs_curve = any(source.endswith("典型光伏曲线") for _, _, source in volume_cols.values())
 
@@ -553,7 +610,14 @@ def ingest_standard_sheet(path: Path, province: str, typical_curve: dict[str, fl
             fallback_idx = volume_cols.get(other_market, (-1, "", ""))[0]
             if fallback_idx == vidx:
                 fallback_idx = -1
-            volume, used_typical = row_volume(row, vidx, t, typical_curve, fallback_idx)
+            volume, used_typical = row_volume(
+                row,
+                vidx,
+                t,
+                typical_curve,
+                fallback_idx,
+                province not in PROVINCES_WITHOUT_TYPICAL_VOLUME,
+            )
             if used_typical:
                 needs_curve = True
             if price is None or volume is None:
@@ -569,7 +633,7 @@ def ingest_standard_sheet(path: Path, province: str, typical_curve: dict[str, fl
     return records, {
         "file": path.name,
         "sheet": ws.title,
-        "priceColumns": selected_price_columns(headers, province),
+        "priceColumns": selected_price_columns(headers, province, inferred_file_market),
         "volumeColumns": {k: v[1] for k, v in volume_cols.items()},
         "volumeSource": {k: v[2] for k, v in volume_cols.items()},
         "records": len(records),
@@ -729,7 +793,7 @@ def extract_series(path: Path, province: str, typical_curve: dict[str, float]) -
         return [], [], {"file": path.name, "ignored": "未识别日期/时刻列"}
     type_col = find_col(headers, lambda h: h == "类型" or h.endswith("-类型") or h == "电价类型")
     inferred_file_market = infer_market_from_filename(path.name)
-    volume_cols = select_volume_columns(headers)
+    volume_cols = select_volume_columns(headers, province)
     prices: list[dict[str, Any]] = []
     volumes: list[dict[str, Any]] = []
     used_typical_curve = any(v[2].endswith("典型光伏曲线") for v in volume_cols.values())
@@ -759,7 +823,14 @@ def extract_series(path: Path, province: str, typical_curve: dict[str, float]) -
             fallback_idx = volume_cols.get(other_market, (-1, "", ""))[0]
             if fallback_idx == idx:
                 fallback_idx = -1
-            value, used_typical = row_volume(row, idx, t, typical_curve, fallback_idx)
+            value, used_typical = row_volume(
+                row,
+                idx,
+                t,
+                typical_curve,
+                fallback_idx,
+                province not in PROVINCES_WITHOUT_TYPICAL_VOLUME,
+            )
             if used_typical:
                 used_typical_curve = True
             if value is None:
@@ -776,7 +847,7 @@ def extract_series(path: Path, province: str, typical_curve: dict[str, float]) -
     return prices, volumes, {
         "file": path.name,
         "sheet": ws.title,
-        "priceColumns": selected_price_columns(headers, province),
+        "priceColumns": selected_price_columns(headers, province, inferred_file_market),
         "volumeColumns": {k: v[1] for k, v in volume_cols.items()},
         "volumeSource": {k: v[2] for k, v in volume_cols.items()},
         "pricePoints": len(prices),
@@ -833,7 +904,7 @@ def calculate_slice(years: set[int] | None = None, months: set[str] | None = Non
 
         source_paths = [
             path for path in sorted(province_dir.rglob("*.xlsx"))
-            if path_may_match(path, years, months)
+            if not path.name.startswith("~$") and path_may_match(path, years, months)
         ]
         for path in source_paths:
             file_month = month_from_filename(path.name)
@@ -943,6 +1014,8 @@ def calculate_slice(years: set[int] | None = None, months: set[str] | None = Non
                 other_market = "实时" if market == "日前" else "日前"
                 volume_tuple = staged_volumes.get((dt, other_market, month))
             if not volume_tuple:
+                if province in PROVINCES_WITHOUT_TYPICAL_VOLUME:
+                    continue
                 volume_tuple = (typical_curve.get(dt[11:16], 0), "典型光伏曲线")
                 curve_needed.add(province)
             volume, _source = volume_tuple
