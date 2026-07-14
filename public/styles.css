@@ -511,7 +511,7 @@ tbody tr:hover td {
   z-index: 10;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   color: #173f68;
   font-size: 12px;
   font-weight: 600;
@@ -521,8 +521,8 @@ tbody tr:hover td {
 }
 
 .page-watermark img {
-  width: 34px;
-  height: 34px;
+  width: 40px;
+  height: 40px;
   border-radius: 4px;
   object-fit: cover;
 }
@@ -533,12 +533,12 @@ tbody tr:hover td {
 }
 
 .watermark-copy strong {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
 }
 
 .watermark-copy small {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 500;
 }
 
