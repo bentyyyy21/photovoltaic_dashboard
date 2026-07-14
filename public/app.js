@@ -668,7 +668,12 @@ function exportMonth(month) {
   return month ? String(month).replace("-", "") : "";
 }
 
-function downloadRows(rows, filename) {
+function downloadRows(rows, filename, sheetName) {
+  if (!window.XLSX) {
+    window.alert("Excel 导出组件加载失败，请刷新页面后重试。");
+    return;
+  }
+
   const payload = rows.map((row) => ({
     省份: row.province || els.province.value,
     月份: exportMonth(row.month || row.period),
@@ -677,28 +682,33 @@ function downloadRows(rows, filename) {
     权重合计: row.volume,
     样本点: row.points || row.months,
   }));
-  const headers = Object.keys(payload[0] || {
-    省份: "",
-    月份: "",
-    市场: "",
-    光伏现货加权均价_元每MWh: "",
-    权重合计: "",
-    样本点: "",
-  });
-  const html = `
-    <html><head><meta charset="UTF-8"></head><body>
-      <table border="1">
-        <thead><tr>${headers.map((head) => `<th>${head}</th>`).join("")}</tr></thead>
-        <tbody>${payload.map((row) => `<tr>${headers.map((head) => `<td${head === "月份" ? " style=\"mso-number-format:'\\@'\"" : ""}>${row[head] ?? ""}</td>`).join("")}</tr>`).join("")}</tbody>
-      </table>
-    </body></html>
-  `;
-  const blob = new Blob([html], { type: "application/vnd.ms-excel;charset=utf-8" });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = filename;
-  link.click();
-  URL.revokeObjectURL(link.href);
+  const headers = ["省份", "月份", "市场", "光伏现货加权均价_元每MWh", "权重合计", "样本点"];
+  const worksheet = window.XLSX.utils.aoa_to_sheet([
+    headers,
+    ...payload.map((row) => headers.map((header) => row[header] ?? "")),
+  ]);
+
+  worksheet["!cols"] = [
+    { wch: 12 },
+    { wch: 10 },
+    { wch: 10 },
+    { wch: 30 },
+    { wch: 18 },
+    { wch: 12 },
+  ];
+  worksheet["!autofilter"] = { ref: `A1:F${Math.max(payload.length + 1, 1)}` };
+  for (let rowNumber = 2; rowNumber <= payload.length + 1; rowNumber += 1) {
+    const monthCell = worksheet[`B${rowNumber}`];
+    if (monthCell) {
+      monthCell.t = "s";
+      monthCell.v = String(monthCell.v);
+      monthCell.z = "@";
+    }
+  }
+
+  const workbook = window.XLSX.utils.book_new();
+  window.XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+  window.XLSX.writeFile(workbook, filename, { bookType: "xlsx", compression: true });
 }
 
 function exportNationalRows() {
@@ -709,13 +719,17 @@ function exportNationalRows() {
     .sort((a, b) => a.province.localeCompare(b.province, "zh-CN")
       || a.month.localeCompare(b.month)
       || marketOrder.indexOf(a.market) - marketOrder.indexOf(b.market));
-  downloadRows(rows, `全国_${start}_${end}_各省逐月明细.xls`);
+  downloadRows(rows, `全国_${start}_${end}_各省逐月明细.xlsx`, "全国逐月明细");
 }
 
 function exportProvinceRows() {
   const start = els.provinceStart.value;
   const end = els.provinceEnd.value;
-  downloadRows(selectedRows(), `${els.province.value}_${start}_${end}_逐月明细.xls`);
+  downloadRows(
+    selectedRows(),
+    `${els.province.value}_${start}_${end}_逐月明细.xlsx`,
+    `${els.province.value}逐月明细`,
+  );
 }
 
 async function init() {
