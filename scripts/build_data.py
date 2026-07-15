@@ -70,6 +70,10 @@ PROVINCE_PRICE_PREFERENCES = {
         "日前": ["统一出清价格-日前"],
         "实时": ["统一出清价格-日内"],
     },
+    "重庆": {
+        "日前": ["日前市场化市场出清电价"],
+        "实时": ["实时出清电价"],
+    },
 }
 
 PROVINCE_VOLUME_PREFERENCES = {
@@ -86,6 +90,14 @@ SEPARATE_PRICE_FILE_RULES = {
     "湖北": ("市场出清信息",),
     "福建": ("市场出清信息",),
     "吉林": ("省内出清价格",),
+}
+
+NAMED_PRICE_SHEET_RULES = {
+    "重庆": {
+        "sheet": "市场出清信息",
+        "日前": "日前市场化市场出清电价",
+        "实时": "实时出清电价",
+    },
 }
 
 
@@ -502,6 +514,72 @@ def ingest_split_market_workbook(path: Path, province: str, typical_curve: dict[
         },
         "records": len(records),
         "usesTypicalCurve": used_typical,
+    }
+
+
+def ingest_named_price_sheet(
+    path: Path,
+    province: str,
+    typical_curve: dict[str, float],
+) -> tuple[list[dict[str, Any]], dict[str, Any]] | None:
+    rule = NAMED_PRICE_SHEET_RULES.get(province)
+    if not rule:
+        return None
+
+    wb = load_workbook_for_path(path)
+    sheet_name = rule["sheet"]
+    if sheet_name not in wb.sheetnames:
+        raise ValueError(f"未找到指定价格工作表：{sheet_name}")
+    ws = wb[sheet_name]
+    prepare_sheet(ws)
+    rows = ws.iter_rows(values_only=True)
+    try:
+        headers = [cell_text(value) for value in next(rows)]
+    except StopIteration:
+        raise ValueError(f"指定价格工作表为空：{sheet_name}")
+
+    date_col = find_col(headers, lambda header: header == "日期")
+    time_col = find_col(headers, is_time_header)
+    price_cols = {
+        market: find_col(headers, lambda header, target=rule[market]: header == target)
+        for market in ("日前", "实时")
+    }
+    missing = [market for market, idx in price_cols.items() if idx is None]
+    if date_col is None or time_col is None or missing:
+        missing_fields = [rule[market] for market in missing]
+        raise ValueError(f"指定价格工作表缺少日期/时刻或价格字段：{', '.join(missing_fields)}")
+
+    records: list[dict[str, Any]] = []
+    for row in rows:
+        d = normalize_date(row[date_col] if date_col < len(row) else None)
+        t = normalize_time(row[time_col] if time_col < len(row) else None)
+        if not d or not t:
+            continue
+        volume = typical_curve.get(t, 0)
+        for market, price_col in price_cols.items():
+            price = to_float(row[price_col] if price_col < len(row) else None)
+            if price is None:
+                continue
+            records.append({
+                "province": province,
+                "month": d[:7],
+                "datetime": f"{d}T{t}:00",
+                "market": market,
+                "price": price,
+                "volume": volume,
+            })
+
+    return records, {
+        "file": path.name,
+        "sheet": sheet_name,
+        "priceColumns": {market: rule[market] for market in ("日前", "实时")},
+        "volumeColumns": {"日前": "典型光伏曲线", "实时": "典型光伏曲线"},
+        "volumeSource": {
+            "日前": "源文件无光伏字段，使用重庆典型光伏曲线独立权重",
+            "实时": "源文件无光伏字段，使用重庆典型光伏曲线独立权重",
+        },
+        "records": len(records),
+        "usesTypicalCurve": True,
     }
 
 
@@ -928,6 +1006,20 @@ def calculate_slice(years: set[int] | None = None, months: set[str] | None = Non
         for path in source_paths:
             file_month = month_from_filename(path.name)
             try:
+                named_price_result = ingest_named_price_sheet(path, province, typical_curve)
+                if named_price_result is not None:
+                    records, info = named_price_result
+                    records = selected_records(records)
+                    info["records"] = len(records)
+                    for rec in records:
+                        key = (rec["month"], rec["market"])
+                        by_key[key]["priceVolume"] += rec["price"] * rec["volume"]
+                        by_key[key]["volume"] += rec["volume"]
+                        by_key[key]["points"] += 1
+                    curve_needed.add(province)
+                    mapping_rows.append(info)
+                    continue
+
                 split_result = ingest_split_market_workbook(path, province, typical_curve)
                 if split_result is not None:
                     records, info = split_result

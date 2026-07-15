@@ -3,7 +3,7 @@
   "years": [
     2026
   ],
-  "generatedAt": "2026-07-14T15:34:40",
+  "generatedAt": "2026-07-15T10:26:50",
   "monthly": [
     {
       "province": "云南",
@@ -1691,6 +1691,102 @@
       "market": "日前",
       "weightedAvg": 248.5302445929348,
       "volume": 3428431.0,
+      "points": 2880
+    },
+    {
+      "province": "重庆",
+      "month": "2026-01",
+      "market": "实时",
+      "weightedAvg": 423.2686598892153,
+      "volume": 869.7484939275988,
+      "points": 2976
+    },
+    {
+      "province": "重庆",
+      "month": "2026-01",
+      "market": "日前",
+      "weightedAvg": 416.7460882666815,
+      "volume": 869.7484939275988,
+      "points": 2976
+    },
+    {
+      "province": "重庆",
+      "month": "2026-02",
+      "market": "实时",
+      "weightedAvg": 394.6761885004954,
+      "volume": 780.8308668413281,
+      "points": 2648
+    },
+    {
+      "province": "重庆",
+      "month": "2026-02",
+      "market": "日前",
+      "weightedAvg": 425.5120387607647,
+      "volume": 785.5792848378309,
+      "points": 2688
+    },
+    {
+      "province": "重庆",
+      "month": "2026-03",
+      "market": "实时",
+      "weightedAvg": 367.2181103829514,
+      "volume": 869.7484939275988,
+      "points": 2916
+    },
+    {
+      "province": "重庆",
+      "month": "2026-03",
+      "market": "日前",
+      "weightedAvg": 364.85570860176654,
+      "volume": 869.7484939275988,
+      "points": 2976
+    },
+    {
+      "province": "重庆",
+      "month": "2026-04",
+      "market": "实时",
+      "weightedAvg": 360.84480586451434,
+      "volume": 841.6920908976762,
+      "points": 2880
+    },
+    {
+      "province": "重庆",
+      "month": "2026-04",
+      "market": "日前",
+      "weightedAvg": 309.29320689693697,
+      "volume": 841.6920908976762,
+      "points": 2880
+    },
+    {
+      "province": "重庆",
+      "month": "2026-05",
+      "market": "实时",
+      "weightedAvg": 339.15626485487223,
+      "volume": 869.7484939275988,
+      "points": 2976
+    },
+    {
+      "province": "重庆",
+      "month": "2026-05",
+      "market": "日前",
+      "weightedAvg": 296.21067503978173,
+      "volume": 869.7484939275988,
+      "points": 2976
+    },
+    {
+      "province": "重庆",
+      "month": "2026-06",
+      "market": "实时",
+      "weightedAvg": 316.7353653386169,
+      "volume": 841.6920908976762,
+      "points": 2880
+    },
+    {
+      "province": "重庆",
+      "month": "2026-06",
+      "market": "日前",
+      "weightedAvg": 273.79088092728784,
+      "volume": 841.6920908976762,
       "points": 2880
     },
     {
