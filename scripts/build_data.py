@@ -821,15 +821,17 @@ def ingest_horizontal_price_sheet(
     prepare_sheet(ws)
     rows = ws.iter_rows(values_only=True)
     try:
-        headers = [cell_text(v) for v in next(rows)]
+        header_values = list(next(rows))
+        headers = [cell_text(v) for v in header_values]
     except StopIteration:
         return None
 
     date_col = find_col(headers, lambda h: h == "日期")
     type_col = find_col(headers, lambda h: h == "电价类型" or h == "类型")
-    time_cols = [(idx, normalize_time(header)) for idx, header in enumerate(headers)]
+    inferred_market = infer_market_from_filename(path.name) or market_from_text(ws.title)
+    time_cols = [(idx, normalize_time(value)) for idx, value in enumerate(header_values)]
     time_cols = [(idx, slot) for idx, slot in time_cols if slot is not None]
-    if date_col is None or type_col is None or len(time_cols) < 12:
+    if date_col is None or len(time_cols) < 12 or (type_col is None and inferred_market is None):
         return None
 
     if "24点" in path.name:
@@ -840,10 +842,24 @@ def ingest_horizontal_price_sheet(
             "records": 0,
         }
 
+    interval_minutes = 1440 // len(time_cols) if 1440 % len(time_cols) == 0 else 15
+    if interval_minutes % 15 != 0:
+        interval_minutes = 15
+
+    def interval_curve_weight(slot: str) -> float:
+        end_minute = int(slot[:2]) * 60 + int(slot[3:5])
+        return sum(
+            typical_curve.get(f"{minute // 60:02d}:{minute % 60:02d}", 0)
+            for minute in ((end_minute - offset) % 1440 for offset in range(0, interval_minutes, 15))
+        )
+
     records: list[dict[str, Any]] = []
     for row in rows:
         d = normalize_date(row[date_col] if date_col < len(row) else None)
-        market = market_from_text(row[type_col] if type_col < len(row) else None)
+        market = (
+            market_from_text(row[type_col] if type_col is not None and type_col < len(row) else None)
+            or inferred_market
+        )
         if not d or not market:
             continue
         for idx, t in time_cols:
@@ -856,17 +872,15 @@ def ingest_horizontal_price_sheet(
                 "datetime": f"{d}T{t}:00",
                 "market": market,
                 "price": price,
-                "volume": typical_curve.get(t, 0),
+                "volume": interval_curve_weight(t),
             })
+    market_label = inferred_market or "日前/实时"
     return records, {
         "file": path.name,
         "sheet": ws.title,
-        "priceColumns": {"日前/实时": "横向96点电价"},
-        "volumeColumns": {"日前": "典型光伏曲线", "实时": "典型光伏曲线"},
-        "volumeSource": {
-            "日前": "横向价格表无光伏字段，使用典型曲线独立权重",
-            "实时": "横向价格表无光伏字段，使用典型曲线独立权重",
-        },
+        "priceColumns": {market_label: f"横向{len(time_cols)}点电价"},
+        "volumeColumns": {market_label: "典型光伏曲线"},
+        "volumeSource": {market_label: f"横向{len(time_cols)}点价格按{interval_minutes}分钟区间汇总典型曲线权重"},
         "records": len(records),
         "usesTypicalCurve": True,
     }
