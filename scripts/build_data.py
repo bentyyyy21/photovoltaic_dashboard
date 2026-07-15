@@ -83,6 +83,12 @@ MONTH_PRICE_PREFERENCES = {
     },
 }
 
+CROSS_MARKET_PRICE_FALLBACKS = {
+    ("江西", "2026-04"): {
+        "日前": "实时",
+    },
+}
+
 PROVINCE_VOLUME_PREFERENCES = {
     "辽宁": {
         "日前": ["日前数据-新能源负荷-光伏", "新能源负荷-光伏"],
@@ -484,31 +490,13 @@ def ingest_split_market_workbook(path: Path, province: str, typical_curve: dict[
     real_price_col = find_col(real_headers, lambda h: "PRICE" in h.upper() or "价格" in h or "电价" in h)
     if day_volume_col is None or day_price_col is None:
         return None
+    file_month = month_from_filename(path.name)
 
     records: list[dict[str, Any]] = []
     used_typical = False
     day_volumes: dict[str, float] = {}
-    for row in day_ws.iter_rows(min_row=2, values_only=True):
-        d, t = normalize_datetime(row[0] if row else None)
-        if not d or not t:
-            continue
-        dt = f"{d}T{t}:00"
-        volume = to_float(row[day_volume_col] if day_volume_col < len(row) else None)
-        if volume is None:
-            volume = typical_curve.get(t, 0)
-            used_typical = True
-        day_volumes[dt] = volume
-        price = to_float(row[day_price_col] if day_price_col < len(row) else None)
-        if volume is not None and price is not None:
-            records.append({
-                "province": province,
-                "month": d[:7],
-                "datetime": dt,
-                "market": "日前",
-                "price": price,
-                "volume": volume,
-            })
-
+    real_price_rows: list[tuple[str, str, str, str, float]] = []
+    real_prices: dict[str, float] = {}
     if real_price_col is not None:
         for row in real_ws.iter_rows(min_row=2, values_only=True):
             d, t = normalize_datetime(row[0] if row else None)
@@ -516,6 +504,38 @@ def ingest_split_market_workbook(path: Path, province: str, typical_curve: dict[
                 continue
             dt = f"{d}T{t}:00"
             price = to_float(row[real_price_col] if real_price_col < len(row) else None)
+            if price is None:
+                continue
+            real_prices[dt] = price
+            real_price_rows.append((file_month or d[:7], d, t, dt, price))
+
+    for row in day_ws.iter_rows(min_row=2, values_only=True):
+        d, t = normalize_datetime(row[0] if row else None)
+        if not d or not t:
+            continue
+        month = file_month or d[:7]
+        dt = f"{d}T{t}:00"
+        volume = to_float(row[day_volume_col] if day_volume_col < len(row) else None)
+        if volume is None:
+            volume = typical_curve.get(t, 0)
+            used_typical = True
+        day_volumes[dt] = volume
+        price = to_float(row[day_price_col] if day_price_col < len(row) else None)
+        fallback_market = CROSS_MARKET_PRICE_FALLBACKS.get((province, month), {}).get("日前")
+        if price is None and fallback_market == "实时":
+            price = real_prices.get(dt)
+        if volume is not None and price is not None:
+            records.append({
+                "province": province,
+                "month": month,
+                "datetime": dt,
+                "market": "日前",
+                "price": price,
+                "volume": volume,
+            })
+
+    if real_price_col is not None:
+        for month, d, t, dt, price in real_price_rows:
             volume = day_volumes.get(dt)
             if volume is None:
                 volume = typical_curve.get(t, 0)
@@ -523,17 +543,23 @@ def ingest_split_market_workbook(path: Path, province: str, typical_curve: dict[
             if volume is not None and price is not None:
                 records.append({
                     "province": province,
-                    "month": d[:7],
+                    "month": month,
                     "datetime": dt,
                     "market": "实时",
                     "price": price,
                     "volume": volume,
                 })
+    day_price_mapping = day_headers[day_price_col]
+    if (
+        CROSS_MARKET_PRICE_FALLBACKS.get((province, file_month or ""), {}).get("日前") == "实时"
+        and real_price_col is not None
+    ):
+        day_price_mapping = f"{real_headers[real_price_col]}（日前复用实时价格）"
     return records, {
         "file": path.name,
         "sheet": "日前/实时",
         "priceColumns": {
-            "日前": day_headers[day_price_col],
+            "日前": day_price_mapping,
             "实时": real_headers[real_price_col] if real_price_col is not None else "",
         },
         "volumeColumns": {

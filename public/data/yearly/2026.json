@@ -3,7 +3,7 @@
   "years": [
     2026
   ],
-  "generatedAt": "2026-07-15T10:58:21",
+  "generatedAt": "2026-07-15T11:07:59",
   "monthly": [
     {
       "province": "云南",
@@ -905,6 +905,14 @@
       "province": "江西",
       "month": "2026-04",
       "market": "实时",
+      "weightedAvg": 111.15101981808408,
+      "volume": 3669923.3500000024,
+      "points": 2880
+    },
+    {
+      "province": "江西",
+      "month": "2026-04",
+      "market": "日前",
       "weightedAvg": 111.15101981808408,
       "volume": 3669923.3500000024,
       "points": 2880
