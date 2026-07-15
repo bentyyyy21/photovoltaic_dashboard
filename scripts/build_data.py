@@ -98,6 +98,38 @@ PROVINCE_VOLUME_PREFERENCES = {
 
 PROVINCES_WITHOUT_TYPICAL_VOLUME = {"甘肃"}
 
+HISTORICAL_STAGED_VOLUME_PROVINCES = {
+    "蒙东",
+    "湖南",
+    "湖北",
+    "吉林",
+    "云南",
+    "广西",
+    "贵州",
+    "海南",
+}
+
+NO_TYPICAL_VOLUME_YEARS = {
+    "蒙东": {2025},
+    "湖南": {2025},
+    "湖北": {2024, 2025},
+    "吉林": {2025},
+    "云南": {2025},
+    "广西": {2025},
+    "贵州": {2025},
+    "海南": {2025},
+}
+
+HISTORICAL_VOLUME_FALLBACKS = {
+    ("蒙东", 2025): {"实时": "日前"},
+    ("湖南", 2025): {"日前": "实时"},
+    ("吉林", 2025): {"实时": "日前"},
+    ("云南", 2025): {"实时": "日前"},
+    ("广西", 2025): {"实时": "日前"},
+    ("贵州", 2025): {"实时": "日前"},
+    ("海南", 2025): {"实时": "日前"},
+}
+
 SEPARATE_PRICE_FILE_RULES = {
     "甘肃": ("分区节点电价",),
     "湖北": ("市场出清信息",),
@@ -138,6 +170,20 @@ def to_float(value: Any) -> float | None:
         return float(text)
     except ValueError:
         return None
+
+
+def typical_volume_allowed(province: str, month: str | None = None) -> bool:
+    if province in PROVINCES_WITHOUT_TYPICAL_VOLUME:
+        return False
+    if month:
+        blocked_years = NO_TYPICAL_VOLUME_YEARS.get(province, set())
+        if int(month[:4]) in blocked_years:
+            return False
+    return True
+
+
+def historical_volume_fallback_market(province: str, month: str, market: str) -> str | None:
+    return HISTORICAL_VOLUME_FALLBACKS.get((province, int(month[:4])), {}).get(market)
 
 
 def parameter_value(value: Any) -> float | str | None:
@@ -778,7 +824,7 @@ def ingest_standard_sheet(path: Path, province: str, typical_curve: dict[str, fl
                 t,
                 typical_curve,
                 fallback_idx,
-                province not in PROVINCES_WITHOUT_TYPICAL_VOLUME,
+                typical_volume_allowed(province, month),
             )
             if used_typical:
                 needs_curve = True
@@ -896,7 +942,7 @@ def ingest_horizontal_price_sheet(
     except StopIteration:
         return None
 
-    date_col = find_col(headers, lambda h: h == "日期")
+    date_col = find_col(headers, lambda h: h == "日期" or h.startswith("日期/"))
     type_col = find_col(headers, lambda h: h == "电价类型" or h == "类型")
     inferred_market = infer_market_from_filename(path.name) or market_from_text(ws.title)
     time_cols = [(idx, normalize_time(value)) for idx, value in enumerate(header_values)]
@@ -923,7 +969,12 @@ def ingest_horizontal_price_sheet(
             for minute in ((end_minute - offset) % 1440 for offset in range(0, interval_minutes, 15))
         )
 
-    records: list[dict[str, Any]] = []
+    filename_year_match = re.search(r"(20\d{2})[.\-年]\d{1,2}[.\-月]\d{1,2}", path.name)
+    filename_year = filename_year_match.group(1) if filename_year_match else None
+    correct_zhejiang_year = province == "浙江" and inferred_market == "日前" and filename_year is not None
+    records_by_key: dict[tuple[str, str, str], dict[str, Any]] = {}
+    corrected_dates = 0
+    duplicate_points = 0
     for row in rows:
         d = normalize_date(row[date_col] if date_col < len(row) else None)
         market = (
@@ -932,25 +983,40 @@ def ingest_horizontal_price_sheet(
         )
         if not d or not market:
             continue
+        if correct_zhejiang_year and d[:4] != filename_year:
+            d = f"{filename_year}{d[4:]}"
+            corrected_dates += 1
         for idx, t in time_cols:
             price = to_float(row[idx] if idx < len(row) else None)
             if price is None:
                 continue
-            records.append({
+            key = (d, market, t)
+            if key in records_by_key:
+                duplicate_points += 1
+            records_by_key[key] = {
                 "province": province,
                 "month": d[:7],
                 "datetime": f"{d}T{t}:00",
                 "market": market,
                 "price": price,
                 "volume": interval_curve_weight(t),
-            })
+            }
+    records = list(records_by_key.values())
     market_label = inferred_market or "日前/实时"
+    data_notes = []
+    if corrected_dates:
+        data_notes.append(f"按文件年份{filename_year}校正{corrected_dates}行日期")
+    if duplicate_points:
+        data_notes.append(f"按日期市场时点去重{duplicate_points}个重复价格点")
+    source_note = f"横向{len(time_cols)}点价格按{interval_minutes}分钟区间汇总典型曲线权重"
+    if data_notes:
+        source_note += "；" + "；".join(data_notes)
     return records, {
         "file": path.name,
         "sheet": ws.title,
         "priceColumns": {market_label: f"横向{len(time_cols)}点电价"},
         "volumeColumns": {market_label: "典型光伏曲线"},
-        "volumeSource": {market_label: f"横向{len(time_cols)}点价格按{interval_minutes}分钟区间汇总典型曲线权重"},
+        "volumeSource": {market_label: source_note},
         "records": len(records),
         "usesTypicalCurve": True,
     }
@@ -1017,7 +1083,7 @@ def extract_series(path: Path, province: str, typical_curve: dict[str, float]) -
                 t,
                 typical_curve,
                 fallback_idx,
-                province not in PROVINCES_WITHOUT_TYPICAL_VOLUME,
+                typical_volume_allowed(province, d[:7]),
             )
             if used_typical:
                 used_typical_curve = True
@@ -1030,7 +1096,7 @@ def extract_series(path: Path, province: str, typical_curve: dict[str, float]) -
                 "market": market,
                 "volume": value,
                 "header": header,
-                "source": source,
+                "source": "典型光伏曲线" if used_typical else source,
             })
     return prices, volumes, {
         "file": path.name,
@@ -1069,6 +1135,46 @@ def path_may_match(path: Path, years: set[int] | None, months: set[str] | None) 
     return True
 
 
+def apply_historical_volume_mapping(info: dict[str, Any], province: str) -> None:
+    if province in {"蒙东", "吉林"}:
+        info["volumeColumns"] = {
+            "日前": "类型=日前 → 新能源负荷-光伏",
+            "实时": "类型=实时 → 新能源负荷-光伏；为空时复用日前量",
+        }
+        info["volumeSource"] = {
+            "日前": "使用日前新能源负荷-光伏，不使用典型曲线",
+            "实时": "实时新能源负荷-光伏为空，按日期时刻复用日前新能源负荷-光伏，不使用典型曲线",
+        }
+    elif province == "湖南":
+        info["volumeColumns"] = {
+            "日前": "类型=日前 → 新能源负荷-光伏；为空时复用实时量",
+            "实时": "类型=实时 → 新能源负荷-光伏",
+        }
+        info["volumeSource"] = {
+            "日前": "日前新能源负荷-光伏为空，按日期时刻复用实时新能源负荷-光伏，不使用典型曲线",
+            "实时": "使用实时新能源负荷-光伏，不使用典型曲线",
+        }
+    elif province == "湖北":
+        info["volumeColumns"] = {
+            "日前": "关联边界数据表：类型=日前 → 新能源负荷-光伏",
+            "实时": "关联边界数据表：类型=实时 → 新能源负荷-光伏",
+        }
+        info["volumeSource"] = {
+            "日前": "按日期时刻关联边界数据表日前新能源负荷-光伏，不使用典型曲线",
+            "实时": "按日期时刻关联边界数据表实时新能源负荷-光伏，不使用典型曲线",
+        }
+    else:
+        info["volumeColumns"] = {
+            "日前": "日前文件：新能源负荷（周_光伏出力）_日前",
+            "实时": "实时文件：新能源负荷（周_光伏出力）_实时；为空时复用日前量",
+        }
+        info["volumeSource"] = {
+            "日前": "使用日前文件光伏量，不使用典型曲线",
+            "实时": "实时文件光伏量为空时，按日期时刻复用日前文件光伏量，不使用典型曲线",
+        }
+    info["usesTypicalCurve"] = False
+
+
 def calculate_slice(years: set[int] | None = None, months: set[str] | None = None) -> dict[str, Any]:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     typical_curves = load_typical_curves()
@@ -1093,6 +1199,9 @@ def calculate_slice(years: set[int] | None = None, months: set[str] | None = Non
         by_key: dict[tuple[str, str], dict[str, float]] = defaultdict(lambda: {"priceVolume": 0.0, "volume": 0.0, "points": 0})
         mapping_rows = []
         staged_prices: dict[tuple[str, str, str], float] = {}
+        staged_historical_prices: dict[tuple[str, str, str], dict[str, float]] = defaultdict(
+            lambda: {"priceSum": 0.0, "count": 0}
+        )
         staged_volumes: dict[tuple[str, str, str], tuple[float, str]] = {}
 
         source_paths = [
@@ -1102,6 +1211,39 @@ def calculate_slice(years: set[int] | None = None, months: set[str] | None = Non
         for path in source_paths:
             file_month = month_from_filename(path.name)
             try:
+                use_historical_volume_rules = (
+                    province in HISTORICAL_STAGED_VOLUME_PROVINCES and is_historical_file(path)
+                )
+                if use_historical_volume_rules:
+                    horizontal_result = ingest_horizontal_price_sheet(path, province, typical_curve)
+                    if horizontal_result is not None:
+                        prices, info = horizontal_result
+                        prices = selected_records(prices)
+                        info["records"] = len(prices)
+                        for rec in prices:
+                            key = (rec["datetime"], rec["market"], rec["month"])
+                            staged_historical_prices[key]["priceSum"] += rec["price"]
+                            staged_historical_prices[key]["count"] += 1
+                    else:
+                        prices, volumes, info = extract_series(path, province, typical_curve)
+                        prices = selected_records(prices)
+                        volumes = selected_records(volumes)
+                        info["pricePoints"] = len(prices)
+                        info["volumePoints"] = len(volumes)
+                        for rec in prices:
+                            key = (rec["datetime"], rec["market"], rec["month"])
+                            staged_historical_prices[key]["priceSum"] += rec["price"]
+                            staged_historical_prices[key]["count"] += 1
+                        for rec in volumes:
+                            if "典型光伏曲线" not in rec["source"]:
+                                staged_volumes[(rec["datetime"], rec["market"], rec["month"])] = (
+                                    rec["volume"],
+                                    rec["source"],
+                                )
+                    apply_historical_volume_mapping(info, province)
+                    mapping_rows.append(info)
+                    continue
+
                 named_price_result = ingest_named_price_sheet(path, province, typical_curve)
                 if named_price_result is not None:
                     records, info = named_price_result
@@ -1221,7 +1363,7 @@ def calculate_slice(years: set[int] | None = None, months: set[str] | None = Non
                 other_market = "实时" if market == "日前" else "日前"
                 volume_tuple = staged_volumes.get((dt, other_market, month))
             if not volume_tuple:
-                if province in PROVINCES_WITHOUT_TYPICAL_VOLUME:
+                if not typical_volume_allowed(province, month):
                     continue
                 volume_tuple = (typical_curve.get(dt[11:16], 0), "典型光伏曲线")
                 curve_needed.add(province)
@@ -1230,6 +1372,26 @@ def calculate_slice(years: set[int] | None = None, months: set[str] | None = Non
             by_key[key]["priceVolume"] += price * volume
             by_key[key]["volume"] += volume
             by_key[key]["points"] += 1
+
+        for (dt, market, month), price_stats in staged_historical_prices.items():
+            volume_tuple = staged_volumes.get((dt, market, month))
+            if not volume_tuple:
+                fallback_market = historical_volume_fallback_market(province, month, market)
+                if fallback_market:
+                    volume_tuple = staged_volumes.get((dt, fallback_market, month))
+            if not volume_tuple:
+                if not typical_volume_allowed(province, month):
+                    continue
+                volume_tuple = (typical_curve.get(dt[11:16], 0), "典型光伏曲线")
+                curve_needed.add(province)
+            volume, _source = volume_tuple
+            count = int(price_stats["count"])
+            if not count:
+                continue
+            key = (month, market)
+            by_key[key]["priceVolume"] += price_stats["priceSum"] * volume
+            by_key[key]["volume"] += volume * count
+            by_key[key]["points"] += count
 
         province_months = []
         for (month, market), agg in sorted(by_key.items()):
