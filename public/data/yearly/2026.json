@@ -3,7 +3,7 @@
   "years": [
     2026
   ],
-  "generatedAt": "2026-07-15T10:36:52",
+  "generatedAt": "2026-07-15T10:58:21",
   "monthly": [
     {
       "province": "云南",
@@ -772,6 +772,22 @@
       "weightedAvg": 266.80322882326686,
       "volume": 6652860.569999992,
       "points": 2976
+    },
+    {
+      "province": "江苏",
+      "month": "2026-02",
+      "market": "实时",
+      "weightedAvg": 240.02040775180032,
+      "volume": 5217500.930000012,
+      "points": 2688
+    },
+    {
+      "province": "江苏",
+      "month": "2026-02",
+      "market": "日前",
+      "weightedAvg": 235.21786819043965,
+      "volume": 7767000.159999991,
+      "points": 2688
     },
     {
       "province": "江苏",

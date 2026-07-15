@@ -76,6 +76,13 @@ PROVINCE_PRICE_PREFERENCES = {
     },
 }
 
+MONTH_PRICE_PREFERENCES = {
+    ("江苏", "2026-02"): {
+        "日前": ["统一结算点价格"],
+        "实时": ["统一结算点价格"],
+    },
+}
+
 PROVINCE_VOLUME_PREFERENCES = {
     "辽宁": {
         "日前": ["日前数据-新能源负荷-光伏", "新能源负荷-光伏"],
@@ -310,7 +317,23 @@ def select_price_columns(headers: list[str]) -> dict[str, tuple[int, str]]:
     return result
 
 
-def price_candidates(headers: list[str], market: str, province: str | None = None) -> list[tuple[int, str]]:
+def monthly_price_tokens(province: str | None, market: str, month: str | None = None) -> list[str]:
+    return MONTH_PRICE_PREFERENCES.get((province or "", month or ""), {}).get(market, [])
+
+
+def configured_price_tokens(province: str | None, market: str, month: str | None = None) -> list[str]:
+    monthly = monthly_price_tokens(province, market, month)
+    if monthly:
+        return monthly
+    return PROVINCE_PRICE_PREFERENCES.get(province or "", {}).get(market, [])
+
+
+def price_candidates(
+    headers: list[str],
+    market: str,
+    province: str | None = None,
+    month: str | None = None,
+) -> list[tuple[int, str]]:
     def in_market(h: str) -> bool:
         if market == "日前":
             return "日前" in h
@@ -318,9 +341,9 @@ def price_candidates(headers: list[str], market: str, province: str | None = Non
 
     rows = [
         (i, h) for i, h in enumerate(headers)
-        if in_market(h) and any(x in h or x in h.upper() for x in ("出清价格", "出清均价", "统一结算点电价", "节点均价", "电价", "加权均价", "PRICE"))
+        if in_market(h) and any(x in h or x in h.upper() for x in ("出清价格", "出清均价", "统一结算点电价", "统一结算点价格", "节点均价", "电价", "加权均价", "PRICE"))
     ]
-    configured = PROVINCE_PRICE_PREFERENCES.get(province or "", {}).get(market, [])
+    configured = configured_price_tokens(province, market, month)
     configured_rows = [x for token in configured for x in rows if token in x[1]]
     preferred = [x for x in rows if not any(bad in x[1] for bad in ("预测", "调控后"))]
     return configured_rows + [x for x in preferred if x not in configured_rows] + [x for x in rows if x not in configured_rows and x not in preferred]
@@ -330,13 +353,14 @@ def neutral_price_candidates(
     headers: list[str],
     market: str | None = None,
     province: str | None = None,
+    month: str | None = None,
 ) -> list[tuple[int, str]]:
     rows = [
         (i, h) for i, h in enumerate(headers)
-        if any(x in h or x in h.upper() for x in ("出清价格", "出清均价", "统一结算点电价", "节点均价", "节点电价", "电价", "加权均价", "PRICE"))
+        if any(x in h or x in h.upper() for x in ("出清价格", "出清均价", "统一结算点电价", "统一结算点价格", "节点均价", "节点电价", "电价", "加权均价", "PRICE"))
         and not any(bad in h for bad in ("比例", "类型", "日期", "时刻", "预测", "申报"))
     ]
-    configured = PROVINCE_PRICE_PREFERENCES.get(province or "", {}).get(market or "", [])
+    configured = configured_price_tokens(province, market or "", month)
     configured_rows = [x for token in configured for x in rows if token in x[1]]
     preferred = [
         x for x in rows
@@ -362,23 +386,27 @@ def row_price(
     market: str,
     inferred_market: str | None = None,
     province: str | None = None,
+    month: str | None = None,
 ) -> tuple[float | None, str | None]:
-    configured = PROVINCE_PRICE_PREFERENCES.get(province or "", {}).get(market, [])
-    if inferred_market == market and configured:
+    monthly_override = monthly_price_tokens(province, market, month)
+    configured = configured_price_tokens(province, market, month)
+    if configured:
         configured_neutral = [
-            item for item in neutral_price_candidates(headers, market, province)
+            item for item in neutral_price_candidates(headers, market, province, month)
             if any(token in item[1] for token in configured)
         ]
         for idx, header in configured_neutral:
             value = to_float(row[idx] if idx < len(row) else None)
             if value is not None:
                 return value, header
-    for idx, header in price_candidates(headers, market, province):
+        if monthly_override:
+            return None, None
+    for idx, header in price_candidates(headers, market, province, month):
         value = to_float(row[idx] if idx < len(row) else None)
         if value is not None:
             return value, header
     if inferred_market == market:
-        for idx, header in neutral_price_candidates(headers, market, province):
+        for idx, header in neutral_price_candidates(headers, market, province, month):
             value = to_float(row[idx] if idx < len(row) else None)
             if value is not None:
                 return value, header
@@ -411,19 +439,23 @@ def selected_price_columns(
     headers: list[str],
     province: str | None = None,
     inferred_market: str | None = None,
+    month: str | None = None,
 ) -> dict[str, str]:
     result = {}
     for market in ("日前", "实时"):
-        candidates = price_candidates(headers, market, province)
-        configured = PROVINCE_PRICE_PREFERENCES.get(province or "", {}).get(market, [])
-        if inferred_market == market and configured:
+        candidates = price_candidates(headers, market, province, month)
+        monthly_override = monthly_price_tokens(province, market, month)
+        configured = configured_price_tokens(province, market, month)
+        if configured:
             configured_neutral = [
-                item for item in neutral_price_candidates(headers, market, province)
+                item for item in neutral_price_candidates(headers, market, province, month)
                 if any(token in item[1] for token in configured)
             ]
-            candidates = configured_neutral + [item for item in candidates if item not in configured_neutral]
+            candidates = configured_neutral if monthly_override else configured_neutral + [
+                item for item in candidates if item not in configured_neutral
+            ]
         if not candidates:
-            candidates = neutral_price_candidates(headers, market, province)
+            candidates = neutral_price_candidates(headers, market, province, month)
         if candidates:
             result[market] = " / ".join(header for _, header in candidates[:3])
     return result
@@ -702,7 +734,14 @@ def ingest_standard_sheet(path: Path, province: str, typical_curve: dict[str, fl
             if market not in volume_cols:
                 continue
             vidx, volume_header, volume_source = volume_cols[market]
-            price, price_header = row_price(row, headers, market, row_market or inferred_file_market, province)
+            price, price_header = row_price(
+                row,
+                headers,
+                market,
+                row_market or inferred_file_market,
+                province,
+                month,
+            )
             other_market = "实时" if market == "日前" else "日前"
             fallback_idx = volume_cols.get(other_market, (-1, "", ""))[0]
             if fallback_idx == vidx:
@@ -730,7 +769,12 @@ def ingest_standard_sheet(path: Path, province: str, typical_curve: dict[str, fl
     return records, {
         "file": path.name,
         "sheet": ws.title,
-        "priceColumns": selected_price_columns(headers, province, inferred_file_market),
+        "priceColumns": selected_price_columns(
+            headers,
+            province,
+            inferred_file_market,
+            month_from_filename(path.name),
+        ),
         "volumeColumns": {k: v[1] for k, v in volume_cols.items()},
         "volumeSource": {k: v[2] for k, v in volume_cols.items()},
         "records": len(records),
@@ -916,7 +960,14 @@ def extract_series(path: Path, province: str, typical_curve: dict[str, float]) -
         row_market = market_from_text(row[type_col] if type_col is not None and type_col < len(row) else None)
         markets = [row_market] if row_market else [inferred_file_market] if inferred_file_market else ["日前", "实时"]
         for market in markets:
-            value, header = row_price(row, headers, market, row_market or inferred_file_market, province)
+            value, header = row_price(
+                row,
+                headers,
+                market,
+                row_market or inferred_file_market,
+                province,
+                d[:7],
+            )
             if value is not None:
                 prices.append({
                     "province": province,
@@ -958,7 +1009,12 @@ def extract_series(path: Path, province: str, typical_curve: dict[str, float]) -
     return prices, volumes, {
         "file": path.name,
         "sheet": ws.title,
-        "priceColumns": selected_price_columns(headers, province, inferred_file_market),
+        "priceColumns": selected_price_columns(
+            headers,
+            province,
+            inferred_file_market,
+            month_from_filename(path.name),
+        ),
         "volumeColumns": {k: v[1] for k, v in volume_cols.items()},
         "volumeSource": {k: v[2] for k, v in volume_cols.items()},
         "pricePoints": len(prices),
