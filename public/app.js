@@ -19,7 +19,7 @@ const MAP_PRICE_ALIASES = {
   冀南: "河北",
   蒙东: "内蒙古",
 };
-const HEAT_COLORS = ["#e8f1fa", "#42b7c5", "#79b943", "#f3c742", "#e65445"];
+const HEAT_COLORS = ["#2e9d68", "#8bcf63", "#f2d34f", "#f59e3d", "#df3f3f"];
 
 const els = {
   stamp: document.querySelector("#dataStamp"),
