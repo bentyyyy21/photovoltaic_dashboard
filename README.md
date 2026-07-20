@@ -9,6 +9,8 @@
 - `public/data/yearly/2027.json`：运行 2027 年命令后自动生成，后续年份同理。
 - `public/data/dashboard-data.json` 和 `dashboard-data.js`：所有年度缓存的合并结果，网页实际读取这两个文件。
 - `.data-cache/`：本地计算缓存及映射元数据，已被 Git 忽略，不会上传。
+- `public/assets/china-map.svg`：由本地 `可编辑地图.pptx` 的省级自由形状转换生成。
+- 看板中的装机热力图数据由本地 `各省装机与发电量.xlsx` 汇总写入网页数据，不上传原表。
 
 ## 首次固化
 
@@ -54,6 +56,12 @@ python scripts/build_data.py month 2027-01
 
 ```powershell
 python scripts/build_data.py merge
+```
+
+该命令也会同步刷新装机规模热力图数据。若更新了 `可编辑地图.pptx`，重新生成网页地图：
+
+```powershell
+python scripts/extract_map_from_pptx.py
 ```
 
 查看缓存覆盖范围：

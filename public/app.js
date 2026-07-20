@@ -5,6 +5,9 @@ const state = {
     实时: new Set(),
   },
   hiddenProvinceSeries: new Set(),
+  mapMode: "price",
+  mapReady: false,
+  mapValues: new Map(),
 };
 
 const NATIONAL_DEFAULT_START = "2025-06";
@@ -12,6 +15,11 @@ const NATIONAL_DEFAULT_END = "2026-06";
 const PROVINCE_DEFAULT_START = "2026-01";
 const PROVINCE_DEFAULT_END = "2026-06";
 const chartHits = new WeakMap();
+const MAP_PRICE_ALIASES = {
+  冀南: "河北",
+  蒙东: "内蒙古",
+};
+const HEAT_COLORS = ["#e8f1fa", "#42b7c5", "#79b943", "#f3c742", "#e65445"];
 
 const els = {
   stamp: document.querySelector("#dataStamp"),
@@ -45,6 +53,21 @@ const els = {
   settlementRows: document.querySelector("#settlementRows"),
   exportProvince: document.querySelector("#exportProvince"),
   exportNational: document.querySelector("#exportNational"),
+  mapTitle: document.querySelector("#mapTitle"),
+  mapPeriodHint: document.querySelector("#mapPeriodHint"),
+  mapModeButtons: document.querySelectorAll("[data-map-mode]"),
+  mapMarketControl: document.querySelector("#mapMarketControl"),
+  mapCapacityControl: document.querySelector("#mapCapacityControl"),
+  mapMarket: document.querySelector("#mapMarketSelect"),
+  mapCapacity: document.querySelector("#mapCapacitySelect"),
+  mapStage: document.querySelector("#mapStage"),
+  mapHost: document.querySelector("#chinaMapHost"),
+  mapTooltip: document.querySelector("#mapTooltip"),
+  mapLegendTitle: document.querySelector("#mapLegendTitle"),
+  mapLegendUnit: document.querySelector("#mapLegendUnit"),
+  mapLegendMin: document.querySelector("#mapLegendMin"),
+  mapLegendMid: document.querySelector("#mapLegendMid"),
+  mapLegendMax: document.querySelector("#mapLegendMax"),
   provinceLabels: document.querySelectorAll("[data-province-label]"),
   navLinks: document.querySelectorAll(".dashboard-nav a"),
 };
@@ -244,6 +267,155 @@ function nationalRows(market) {
   ))
     .filter((row) => row.weightedAvg !== null)
     .sort((a, b) => (b.weightedAvg || 0) - (a.weightedAvg || 0));
+}
+
+function mapPriceValues(market) {
+  const start = els.nationalStart.value;
+  const end = els.nationalEnd.value;
+  const aggregates = new Map();
+  state.data.monthly
+    .filter((row) => row.market === market && row.month >= start && row.month <= end)
+    .forEach((row) => {
+      const province = MAP_PRICE_ALIASES[row.province] || row.province;
+      const current = aggregates.get(province) || { priceVolume: 0, volume: 0 };
+      current.priceVolume += Number(row.weightedAvg || 0) * Number(row.volume || 0);
+      current.volume += Number(row.volume || 0);
+      aggregates.set(province, current);
+    });
+  return new Map([...aggregates.entries()]
+    .filter(([, item]) => item.volume > 0)
+    .map(([province, item]) => [province, item.priceVolume / item.volume]));
+}
+
+function mapCapacityValues(source) {
+  const provinces = state.data.capacity?.provinces || {};
+  return new Map(Object.entries(provinces)
+    .map(([province, values]) => [province, Number(values?.[source])])
+    .filter(([, value]) => Number.isFinite(value)));
+}
+
+function hexRgb(color) {
+  return [1, 3, 5].map((start) => Number.parseInt(color.slice(start, start + 2), 16));
+}
+
+function heatColor(value, min, max) {
+  const ratio = max === min ? 0.55 : Math.max(0, Math.min(1, (value - min) / (max - min)));
+  const scaled = ratio * (HEAT_COLORS.length - 1);
+  const index = Math.min(HEAT_COLORS.length - 2, Math.floor(scaled));
+  const localRatio = scaled - index;
+  const from = hexRgb(HEAT_COLORS[index]);
+  const to = hexRgb(HEAT_COLORS[index + 1]);
+  const rgb = from.map((channel, channelIndex) => Math.round(channel + (to[channelIndex] - channel) * localRatio));
+  return `rgb(${rgb.join(", ")})`;
+}
+
+function mapTooltipHtml(province) {
+  const item = state.mapValues.get(province);
+  if (!item) return `<strong>${escapeHtml(province)}</strong><span>暂无数据</span>`;
+  return `
+    <strong>${escapeHtml(province)}</strong>
+    <span>${escapeHtml(item.metric)}：${fmt(item.value, item.digits)} ${escapeHtml(item.unit)}</span>
+    <span>${escapeHtml(item.period)}</span>
+  `;
+}
+
+function showMapTooltip(event, province) {
+  els.mapTooltip.innerHTML = mapTooltipHtml(province);
+  els.mapTooltip.hidden = false;
+  const stageRect = els.mapStage.getBoundingClientRect();
+  const pointerX = Number.isFinite(event?.clientX) ? event.clientX - stageRect.left : stageRect.width / 2;
+  const pointerY = Number.isFinite(event?.clientY) ? event.clientY - stageRect.top : stageRect.height / 2;
+  const left = Math.min(
+    Math.max(8, pointerX + 12),
+    Math.max(8, stageRect.width - els.mapTooltip.offsetWidth - 8),
+  );
+  const top = Math.min(
+    Math.max(8, pointerY + 12),
+    Math.max(8, stageRect.height - els.mapTooltip.offsetHeight - 8),
+  );
+  els.mapTooltip.style.left = `${left}px`;
+  els.mapTooltip.style.top = `${top}px`;
+}
+
+function initializeMapInteraction() {
+  els.mapHost.querySelectorAll("[data-province]").forEach((path) => {
+    const province = path.dataset.province;
+    path.setAttribute("tabindex", "0");
+    path.setAttribute("role", "button");
+    path.addEventListener("mousemove", (event) => showMapTooltip(event, province));
+    path.addEventListener("mouseleave", () => { els.mapTooltip.hidden = true; });
+    path.addEventListener("focus", () => showMapTooltip(null, province));
+    path.addEventListener("blur", () => { els.mapTooltip.hidden = true; });
+    path.addEventListener("click", (event) => showMapTooltip(event, province));
+  });
+}
+
+async function loadMap() {
+  const response = await fetch("./public/assets/china-map.svg");
+  if (!response.ok) throw new Error(`地图资源 HTTP ${response.status}`);
+  els.mapHost.innerHTML = await response.text();
+  state.mapReady = true;
+  initializeMapInteraction();
+}
+
+function setMapMode(mode) {
+  state.mapMode = mode;
+  els.mapModeButtons.forEach((button) => {
+    const active = button.dataset.mapMode === mode;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-pressed", active ? "true" : "false");
+  });
+  els.mapMarketControl.hidden = mode !== "price";
+  els.mapCapacityControl.hidden = mode !== "capacity";
+  renderHeatmap();
+}
+
+function renderHeatmap() {
+  if (!state.mapReady) return;
+  const isPrice = state.mapMode === "price";
+  const market = els.mapMarket.value;
+  const source = els.mapCapacity.value;
+  const unit = isPrice ? "元/MWh" : (state.data.capacity?.unit || "万千瓦");
+  const metric = isPrice ? `${market}光伏加权均价` : `${source}装机规模`;
+  const period = isPrice
+    ? `${els.nationalStart.value} 至 ${els.nationalEnd.value}`
+    : `${state.data.capacity?.year || "--"}年`;
+  const values = isPrice ? mapPriceValues(market) : mapCapacityValues(source);
+  const numericValues = [...values.values()].filter((value) => Number.isFinite(value));
+  const min = isPrice ? Math.min(...numericValues) : 0;
+  const max = Math.max(...numericValues);
+  const digits = isPrice ? 2 : 0;
+
+  state.mapValues = new Map([...values.entries()].map(([province, value]) => [province, {
+    value,
+    unit,
+    metric,
+    period,
+    digits,
+  }]));
+  els.mapTitle.textContent = `各省${metric}`;
+  els.mapPeriodHint.textContent = period;
+  els.mapLegendTitle.textContent = metric;
+  els.mapLegendUnit.textContent = unit;
+  els.mapLegendMin.textContent = numericValues.length ? fmt(min, digits) : "--";
+  els.mapLegendMid.textContent = numericValues.length ? fmt((min + max) / 2, digits) : "--";
+  els.mapLegendMax.textContent = numericValues.length ? fmt(max, digits) : "--";
+
+  els.mapHost.querySelectorAll("[data-province]").forEach((path) => {
+    const province = path.dataset.province;
+    const value = values.get(province);
+    const hasValue = Number.isFinite(value);
+    path.style.fill = hasValue && numericValues.length ? heatColor(value, min, max) : "#d8e0e7";
+    path.classList.toggle("has-no-data", !hasValue);
+    path.setAttribute(
+      "aria-label",
+      hasValue
+        ? `${province}，${metric}${fmt(value, digits)}${unit}`
+        : `${province}，暂无数据`,
+    );
+    const title = path.querySelector("title");
+    if (title) title.textContent = hasValue ? `${province} · ${fmt(value, digits)} ${unit}` : `${province} · 暂无数据`;
+  });
 }
 
 function renderSummary(rows) {
@@ -657,6 +829,7 @@ function renderNationalModule() {
   }
   renderNational();
   renderParamTables();
+  renderHeatmap();
 }
 
 function render() {
@@ -743,9 +916,18 @@ async function init() {
   els.stamp.textContent = "";
   els.stamp.hidden = true;
   fillSelect(els.province, state.data.provinces.map((p) => p.name));
+  if (state.data.capacity?.types?.length) {
+    fillSelect(els.mapCapacity, state.data.capacity.types);
+    els.mapCapacity.value = state.data.capacity.types.includes("光伏") ? "光伏" : state.data.capacity.types[0];
+  }
   updateNationalMonths(false);
   updateProvinceMonths(false);
   initNavigation();
+  try {
+    await loadMap();
+  } catch (error) {
+    els.mapHost.textContent = `地图加载失败：${error.message}`;
+  }
   render();
   els.province.addEventListener("change", () => {
     updateProvinceMonths(false);
@@ -754,6 +936,9 @@ async function init() {
   els.mode.addEventListener("change", renderProvince);
   [els.provinceStart, els.provinceEnd].forEach((el) => el.addEventListener("change", renderProvince));
   [els.nationalStart, els.nationalEnd].forEach((el) => el.addEventListener("change", renderNationalModule));
+  els.mapModeButtons.forEach((button) => button.addEventListener("click", () => setMapMode(button.dataset.mapMode)));
+  els.mapMarket.addEventListener("change", renderHeatmap);
+  els.mapCapacity.addEventListener("change", renderHeatmap);
   els.exportProvince.addEventListener("click", exportProvinceRows);
   els.exportNational.addEventListener("click", exportNationalRows);
   window.addEventListener("resize", render);

@@ -1,6 +1,7 @@
-# Raw workbooks and Excel lock files stay local only.
+# Raw workbooks, source presentations, and Office lock files stay local only.
 *.xlsx
 *.xls
+*.pptx
 ~$*
 
 # Local calculation caches contain field mappings and source metadata.

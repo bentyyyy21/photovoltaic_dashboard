@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PUBLIC = ROOT / "public"
 DATA_DIR = PUBLIC / "data"
 PRICE_BOOK = ROOT / "各省光伏电价数据.xlsx"
+INSTALLATION_BOOK = ROOT / "各省装机与发电量.xlsx"
 CURVE_BOOK = ROOT / "光伏曲线.xlsx"
 MAPPING_BOOK = ROOT / "各省价量映射维护表.xlsx"
 LOCAL_CACHE_DIR = ROOT / ".data-cache"
@@ -47,6 +48,23 @@ PROVINCE_DISPLAY_ALIASES = {
     "重庆": "重庆市",
     "陕西": "陕西省",
     "江西": "江西省",
+}
+
+CAPACITY_TYPES = {
+    "燃煤": "燃煤",
+    "水电": "水电",
+    "风电": "风电",
+    "光伏": "光伏",
+    "燃气": "燃气",
+    "核电": "核电",
+    "其他": "其他",
+}
+
+CAPACITY_PROVINCE_ALIASES = {
+    "冀北": "河北",
+    "冀南": "河北",
+    "内蒙古东部电网": "内蒙古",
+    "内蒙古西部电网": "内蒙古",
 }
 
 PROVINCE_PRICE_PREFERENCES = {
@@ -750,6 +768,42 @@ def load_params() -> dict[str, dict[str, Any]]:
                 params["settlement"][month] = parameter_value(row[idx])
         rows[province] = params
     return rows
+
+
+def load_installation_capacity() -> dict[str, Any]:
+    wb = openpyxl.load_workbook(INSTALLATION_BOOK, data_only=True, read_only=True)
+    ws = wb[wb.sheetnames[0]]
+    headers = [cell_text(value) for value in next(ws.iter_rows(min_row=2, max_row=2, values_only=True))]
+    province_col = find_col(headers, lambda header: header == "省份/电网区域")
+    type_cols = {
+        source: find_col(headers, lambda header, prefix=prefix: header.startswith(prefix))
+        for source, prefix in CAPACITY_TYPES.items()
+    }
+    if province_col is None or any(index is None for index in type_cols.values()):
+        wb.close()
+        raise ValueError("各省装机与发电量表缺少省份或电源装机字段")
+
+    provinces: dict[str, dict[str, float]] = defaultdict(lambda: defaultdict(float))
+    for row in ws.iter_rows(min_row=3, values_only=True):
+        raw_province = cell_text(row[province_col] if province_col < len(row) else None)
+        if not raw_province:
+            continue
+        province = CAPACITY_PROVINCE_ALIASES.get(raw_province, raw_province)
+        for source, index in type_cols.items():
+            value = to_float(row[index] if index is not None and index < len(row) else None)
+            if value is not None:
+                provinces[province][source] += value
+    year_match = re.search(r"(20\d{2})", ws.title)
+    wb.close()
+    return {
+        "year": year_match.group(1) if year_match else "",
+        "unit": "万千瓦",
+        "types": list(CAPACITY_TYPES),
+        "provinces": {
+            province: {source: values.get(source, 0.0) for source in CAPACITY_TYPES}
+            for province, values in sorted(provinces.items())
+        },
+    }
 
 
 def match_params(province: str, params: dict[str, dict[str, Any]]) -> dict[str, Any] | None:
@@ -1514,6 +1568,7 @@ def merge_cached_outputs() -> dict[str, Any]:
         "provinces": provinces,
         "monthly": monthly,
         "params": params,
+        "capacity": load_installation_capacity(),
     }
     with (DATA_DIR / "dashboard-data.json").open("w", encoding="utf-8") as fh:
         json.dump(public_output, fh, ensure_ascii=False, indent=2)

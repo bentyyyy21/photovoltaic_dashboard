@@ -47,6 +47,56 @@
           </div>
         </div>
 
+        <section class="panel map-panel" aria-label="全国能源数据热力图">
+          <div class="panel-head map-panel-head">
+            <h2 id="mapTitle">各省实时光伏加权均价</h2>
+            <span id="mapPeriodHint"></span>
+          </div>
+          <div class="map-toolbar">
+            <div class="segmented-control" role="group" aria-label="热力图数据类型">
+              <button type="button" class="is-active" data-map-mode="price" aria-pressed="true">光伏加权均价</button>
+              <button type="button" data-map-mode="capacity" aria-pressed="false">装机规模</button>
+            </div>
+            <label id="mapMarketControl" class="map-select-control">
+              <span>市场类型</span>
+              <select id="mapMarketSelect">
+                <option value="实时" selected>实时</option>
+                <option value="日前">日前</option>
+              </select>
+            </label>
+            <label id="mapCapacityControl" class="map-select-control" hidden>
+              <span>电源类型</span>
+              <select id="mapCapacitySelect">
+                <option value="燃煤">燃煤</option>
+                <option value="水电">水电</option>
+                <option value="风电">风电</option>
+                <option value="光伏" selected>光伏</option>
+                <option value="燃气">燃气</option>
+                <option value="核电">核电</option>
+                <option value="其他">其他</option>
+              </select>
+            </label>
+          </div>
+          <div class="map-content">
+            <div id="mapStage" class="map-stage">
+              <div id="chinaMapHost" class="china-map-host" aria-live="polite"></div>
+              <div id="mapTooltip" class="map-tooltip" hidden></div>
+            </div>
+            <aside class="map-legend" aria-label="热力图图例">
+              <strong id="mapLegendTitle">实时光伏加权均价</strong>
+              <span id="mapLegendUnit">元/MWh</span>
+              <div class="heat-scale" aria-hidden="true"></div>
+              <div class="heat-scale-labels">
+                <span id="mapLegendMin">--</span>
+                <span id="mapLegendMid">--</span>
+                <span id="mapLegendMax">--</span>
+              </div>
+              <div class="map-no-data"><i></i><span>暂无数据</span></div>
+            </aside>
+          </div>
+          <p class="map-disclaimer">仅用于示意图之用</p>
+        </section>
+
       <section class="national-grid" aria-label="全国数据看板">
         <article class="panel national-panel">
           <div class="panel-head">
