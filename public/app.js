@@ -351,9 +351,13 @@ function initializeMapInteraction() {
 }
 
 async function loadMap() {
-  const response = await fetch("./public/assets/china-map.svg");
-  if (!response.ok) throw new Error(`地图资源 HTTP ${response.status}`);
-  els.mapHost.innerHTML = await response.text();
+  if (window.CHINA_MAP_SVG) {
+    els.mapHost.innerHTML = window.CHINA_MAP_SVG;
+  } else {
+    const response = await fetch("./public/assets/china-map.svg");
+    if (!response.ok) throw new Error(`地图资源 HTTP ${response.status}`);
+    els.mapHost.innerHTML = await response.text();
+  }
   state.mapReady = true;
   initializeMapInteraction();
 }
@@ -371,7 +375,6 @@ function setMapMode(mode) {
 }
 
 function renderHeatmap() {
-  if (!state.mapReady) return;
   const isPrice = state.mapMode === "price";
   const market = els.mapMarket.value;
   const source = els.mapCapacity.value;
@@ -379,7 +382,7 @@ function renderHeatmap() {
   const metric = isPrice ? `${market}光伏加权均价` : `${source}装机规模`;
   const period = isPrice
     ? `${els.nationalStart.value} 至 ${els.nationalEnd.value}`
-    : `${state.data.capacity?.year || "--"}年`;
+    : `${state.data.capacity?.year || "--"}年装机`;
   const values = isPrice ? mapPriceValues(market) : mapCapacityValues(source);
   const numericValues = [...values.values()].filter((value) => Number.isFinite(value));
   const min = isPrice ? Math.min(...numericValues) : 0;
@@ -401,6 +404,7 @@ function renderHeatmap() {
   els.mapLegendMid.textContent = numericValues.length ? fmt((min + max) / 2, digits) : "--";
   els.mapLegendMax.textContent = numericValues.length ? fmt(max, digits) : "--";
 
+  if (!state.mapReady) return;
   els.mapHost.querySelectorAll("[data-province]").forEach((path) => {
     const province = path.dataset.province;
     const value = values.get(province);

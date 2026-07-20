@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import html
+import json
 import zipfile
 from pathlib import Path
 from xml.etree import ElementTree as ET
@@ -9,6 +10,7 @@ from xml.etree import ElementTree as ET
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "可编辑地图.pptx"
 OUTPUT = ROOT / "public" / "assets" / "china-map.svg"
+OUTPUT_JS = ROOT / "public" / "assets" / "china-map.js"
 
 P_NS = "http://schemas.openxmlformats.org/presentationml/2006/main"
 A_NS = "http://schemas.openxmlformats.org/drawingml/2006/main"
@@ -164,8 +166,13 @@ def build_svg() -> None:
         '</svg>',
         '',
     ]
-    OUTPUT.write_text("\n".join(svg), encoding="utf-8")
-    print(f"Wrote {OUTPUT} ({len(paths)} paths from {len(PROVINCES)} provinces)")
+    svg_text = "\n".join(svg)
+    OUTPUT.write_text(svg_text, encoding="utf-8")
+    OUTPUT_JS.write_text(
+        "window.CHINA_MAP_SVG = " + json.dumps(svg_text, ensure_ascii=False) + ";\n",
+        encoding="utf-8",
+    )
+    print(f"Wrote {OUTPUT} and {OUTPUT_JS} ({len(paths)} paths from {len(PROVINCES)} provinces)")
 
 
 if __name__ == "__main__":
