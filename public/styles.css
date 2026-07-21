@@ -1571,6 +1571,13 @@ button.primary:hover {
 
 .trend-market-switch button.is-active {
   color: #fff;
+  border-color: var(--brand);
+  background: var(--brand);
+}
+
+.trend-market-switch button.is-active:hover {
+  border-color: #c70e28;
+  background: #dc1833;
 }
 
 .trend-workspace-grid {
