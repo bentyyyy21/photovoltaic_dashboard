@@ -1,7 +1,7 @@
 **Design QA**
 
 - Source visual truth: `C:\Users\ben2026\.codex\generated_images\019f8289-34e1-7d00-ba5f-893131d82a2f\exec-aaa70f89-4beb-4e99-a9e1-5bc29b73c073.png`
-- Implementation screenshots: `D:\Coding\photovoltaic_dashboard\.data-cache\qa-map-desktop.png`, `D:\Coding\photovoltaic_dashboard\.data-cache\qa-heat-range-hover.png`, `D:\Coding\photovoltaic_dashboard\.data-cache\qa-chart-tooltip.png`
+- Implementation screenshots: `D:\Coding\photovoltaic_dashboard\.data-cache\qa-map-desktop.png`, `D:\Coding\photovoltaic_dashboard\.data-cache\qa-chart-tooltip.png`, `D:\Coding\photovoltaic_dashboard\.data-cache\qa-mobile-bar.png`, `D:\Coding\photovoltaic_dashboard\.data-cache\qa-mobile-line.png`
 - Captured viewports: 1440 x 1000 desktop and 390 x 844 mobile
 - State: national overview and realtime multi-province trend, 2025-06 to 2026-06
 
@@ -29,6 +29,8 @@
   Fix: added bidirectional map/ranking highlighting, persistent province selection, proportional ranking bars, axis pointers, colored hover nodes, and structured multi-series tooltips.
 - [Resolved P2] Static heat legend.
   Fix: added segmented hover inspection with province labels, two-handle range filtering, out-of-range dimming, and province-to-axis value markers. Automated checks confirmed all three states and a 390px overflow-free mobile layout.
+- [Resolved P2] Mobile charts compressed a desktop-sized canvas, making labels small and clipping the final month.
+  Fix: render canvases at the actual mobile width, center month labels with a larger right inset, and show national bars through a seven-province draggable window. Automated checks confirmed `5–11 / 21`, a complete `2026-06` label, and `scrollWidth === clientWidth` at 390px.
 
 **Required Fidelity Surfaces**
 
@@ -45,6 +47,7 @@
 3. Added realtime defaults, four-province focus, smooth curves, gradient bars, and restored table-header colors; desktop and mobile captures passed.
 4. Enlarged the national map, stacked the supporting panels, and verified map selection plus axis-trigger chart interaction in headless Edge.
 5. Added continuous visual-map inspection, dual range handles, province labels, and value markers; verified all interactions in headless Edge.
+6. Added mobile bar-axis navigation and true-width canvas rendering; inspected dedicated mobile bar and line screenshots.
 
 **Implementation Checklist**
 
@@ -59,5 +62,7 @@
 - [x] Unified national, parameter, and province table styling
 - [x] Desktop comparison capture
 - [x] Mobile browser capture
+- [x] Mobile bar-axis range navigation
+- [x] Mobile final-month label visibility
 
 final result: passed

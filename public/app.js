@@ -19,6 +19,7 @@ const NATIONAL_DEFAULT_END = "2026-06";
 const PROVINCE_DEFAULT_START = "2026-01";
 const PROVINCE_DEFAULT_END = "2026-06";
 const chartHits = new WeakMap();
+const barChartOffsets = new WeakMap();
 const MAP_PRICE_ALIASES = {
   冀南: "河北",
   蒙东: "内蒙古",
@@ -768,7 +769,8 @@ function renderChart(rows) {
   const canvas = els.chart;
   const rect = canvas.getBoundingClientRect();
   const dpr = window.devicePixelRatio || 1;
-  canvas.width = Math.max(640, Math.floor(rect.width * dpr));
+  const isMobile = window.matchMedia("(max-width: 620px)").matches;
+  canvas.width = isMobile ? Math.max(1, Math.floor(rect.width * dpr)) : Math.max(640, Math.floor(rect.width * dpr));
   canvas.height = Math.max(260, Math.floor(rect.height * dpr));
   const ctx = canvas.getContext("2d");
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -800,7 +802,9 @@ function renderChart(rows) {
     return;
   }
 
-  const pad = { left: 64, right: 24, top: 42, bottom: 46 };
+  const pad = isMobile
+    ? { left: 44, right: 42, top: 36, bottom: 50 }
+    : { left: 64, right: 36, top: 42, bottom: 46 };
   const chartW = width - pad.left - pad.right;
   const chartH = height - pad.top - pad.bottom;
   const minValue = Math.min(...values);
@@ -813,8 +817,9 @@ function renderChart(rows) {
 
   ctx.strokeStyle = "#dce3ea";
   ctx.lineWidth = 1;
-  ctx.fillStyle = "#657383";
-  ctx.font = "12px Microsoft YaHei, Segoe UI, sans-serif";
+  ctx.fillStyle = "#526171";
+  ctx.font = `${isMobile ? 12 : 12}px Microsoft YaHei, Segoe UI, sans-serif`;
+  ctx.textAlign = "left";
   for (let i = 0; i <= 4; i += 1) {
     const y = pad.top + (chartH * i) / 4;
     const value = yMax - ((yMax - yMin) * i) / 4;
@@ -826,8 +831,10 @@ function renderChart(rows) {
   }
   months.forEach((month, index) => {
     const x = xAt(index);
-    ctx.fillText(month, x - 20, height - 18);
+    ctx.textAlign = "center";
+    ctx.fillText(month, x, height - 18);
   });
+  ctx.textAlign = "left";
 
   series.forEach((item) => {
     ctx.strokeStyle = item.color;
@@ -873,10 +880,39 @@ function renderChart(rows) {
   registerChartHits(canvas, hits, width, height);
 }
 
+function ensureBarNavigator(canvas, total, visibleCount, redraw) {
+  let navigator = canvas.parentElement.querySelector(`[data-bar-navigator="${canvas.id}"]`);
+  if (!navigator) {
+    navigator = document.createElement("div");
+    navigator.className = "bar-axis-navigator";
+    navigator.dataset.barNavigator = canvas.id;
+    navigator.innerHTML = `
+      <span>拖动查看省份</span>
+      <input type="range" min="0" max="0" value="0" aria-label="拖动查看柱状图省份" />
+      <output></output>`;
+    canvas.insertAdjacentElement("afterend", navigator);
+    navigator.querySelector("input").addEventListener("input", (event) => {
+      barChartOffsets.set(canvas, Number(event.currentTarget.value));
+      navigator.redraw?.();
+    });
+  }
+  navigator.redraw = redraw;
+  const maxOffset = Math.max(0, total - visibleCount);
+  const offset = Math.min(barChartOffsets.get(canvas) || 0, maxOffset);
+  barChartOffsets.set(canvas, offset);
+  const input = navigator.querySelector("input");
+  input.max = String(maxOffset);
+  input.value = String(offset);
+  navigator.querySelector("output").textContent = `${total ? offset + 1 : 0}–${Math.min(total, offset + visibleCount)} / ${total}`;
+  navigator.hidden = maxOffset === 0;
+  return offset;
+}
+
 function drawBarChart(canvas, rows, color) {
   const rect = canvas.getBoundingClientRect();
   const dpr = window.devicePixelRatio || 1;
-  canvas.width = Math.max(640, Math.floor(rect.width * dpr));
+  const isMobile = window.matchMedia("(max-width: 620px)").matches;
+  canvas.width = isMobile ? Math.max(1, Math.floor(rect.width * dpr)) : Math.max(640, Math.floor(rect.width * dpr));
   canvas.height = Math.max(260, Math.floor(rect.height * dpr));
   const ctx = canvas.getContext("2d");
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -888,18 +924,23 @@ function drawBarChart(canvas, rows, color) {
     ctx.font = "14px Microsoft YaHei, Segoe UI, sans-serif";
     ctx.fillText("当前周期没有可展示省份", 20, 42);
     registerChartHits(canvas, [], width, height);
+    ensureBarNavigator(canvas, 0, 0, () => drawBarChart(canvas, rows, color));
     return;
   }
-  const topRows = rows;
+  const visibleCount = isMobile ? Math.min(7, rows.length) : rows.length;
+  const offset = ensureBarNavigator(canvas, rows.length, visibleCount, () => drawBarChart(canvas, rows, color));
+  const topRows = rows.slice(offset, offset + visibleCount);
   const max = Math.max(...topRows.map((row) => row.weightedAvg || 0), 1);
-  const pad = { left: 54, right: 20, top: 22, bottom: 58 };
+  const pad = isMobile
+    ? { left: 42, right: 8, top: 20, bottom: 58 }
+    : { left: 52, right: 16, top: 22, bottom: 58 };
   const chartW = width - pad.left - pad.right;
   const chartH = height - pad.top - pad.bottom;
-  const gap = 8;
-  const barW = Math.max(14, (chartW - gap * (topRows.length - 1)) / topRows.length);
+  const gap = isMobile ? 6 : 8;
+  const barW = Math.max(14, (chartW - 2 - gap * (topRows.length - 1)) / topRows.length);
   ctx.strokeStyle = "#dce3ea";
-  ctx.fillStyle = "#657383";
-  ctx.font = "12px Microsoft YaHei, Segoe UI, sans-serif";
+  ctx.fillStyle = "#526171";
+  ctx.font = `${isMobile ? "500 13px" : "12px"} Microsoft YaHei, Segoe UI, sans-serif`;
   for (let i = 0; i <= 4; i += 1) {
     const y = pad.top + (chartH * i) / 4;
     const value = max - (max * i) / 4;
@@ -913,7 +954,7 @@ function drawBarChart(canvas, rows, color) {
   topRows.forEach((row, index) => {
     const value = row.weightedAvg || 0;
     const h = (value / max) * chartH;
-    const x = pad.left + index * (barW + gap);
+    const x = pad.left + 2 + index * (barW + gap);
     const y = pad.top + chartH - h;
     const palette = color === "#0f766e"
       ? ["#5bd4c1", "#149785", "#087166"]
@@ -949,7 +990,7 @@ function drawBarChart(canvas, rows, color) {
     ctx.fillStyle = "#1b232c";
     ctx.save();
     ctx.translate(x + barW / 2 - 4, height - 18);
-    ctx.rotate(-Math.PI / 5);
+    ctx.rotate(-Math.PI / 6);
     ctx.fillText(row.province, 0, 0);
     ctx.restore();
   });
@@ -1042,7 +1083,8 @@ function drawMultiProvinceTrend(canvas, market) {
 
   const rect = canvas.getBoundingClientRect();
   const dpr = window.devicePixelRatio || 1;
-  canvas.width = Math.max(900, Math.floor(rect.width * dpr));
+  const isMobile = window.matchMedia("(max-width: 620px)").matches;
+  canvas.width = isMobile ? Math.max(1, Math.floor(rect.width * dpr)) : Math.max(900, Math.floor(rect.width * dpr));
   canvas.height = Math.max(300, Math.floor(rect.height * dpr));
   const ctx = canvas.getContext("2d");
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -1064,7 +1106,9 @@ function drawMultiProvinceTrend(canvas, market) {
   const span = maxValue - minValue || 1;
   const yMin = Math.max(0, minValue - span * 0.12);
   const yMax = maxValue + span * 0.12;
-  const pad = { left: 62, right: 76, top: 28, bottom: 48 };
+  const pad = isMobile
+    ? { left: 44, right: 52, top: 28, bottom: 48 }
+    : { left: 62, right: 76, top: 28, bottom: 48 };
   const chartW = width - pad.left - pad.right;
   const chartH = height - pad.top - pad.bottom;
   const xAt = (index) => pad.left + (months.length === 1 ? chartW / 2 : (chartW * index) / (months.length - 1));
@@ -1072,8 +1116,9 @@ function drawMultiProvinceTrend(canvas, market) {
 
   ctx.strokeStyle = "#dce3ea";
   ctx.lineWidth = 1;
-  ctx.fillStyle = "#657383";
-  ctx.font = "12px Microsoft YaHei, Segoe UI, sans-serif";
+  ctx.fillStyle = "#526171";
+  ctx.font = `${isMobile ? 11 : 12}px Microsoft YaHei, Segoe UI, sans-serif`;
+  ctx.textAlign = "left";
   for (let i = 0; i <= 4; i += 1) {
     const y = pad.top + (chartH * i) / 4;
     const value = yMax - ((yMax - yMin) * i) / 4;
@@ -1084,9 +1129,12 @@ function drawMultiProvinceTrend(canvas, market) {
     ctx.fillText(fmt(value, 0), 12, y + 4);
   }
   months.forEach((month, index) => {
+    if (isMobile && index % 2 !== 0 && index !== months.length - 1) return;
     const x = xAt(index);
-    ctx.fillText(month, x - 20, height - 18);
+    ctx.textAlign = "center";
+    ctx.fillText(month, x, height - 18);
   });
+  ctx.textAlign = "left";
 
   const focused = [...state.focusedNationalSeries]
     .map((province) => drawableSeries.find((item) => item.province === province))

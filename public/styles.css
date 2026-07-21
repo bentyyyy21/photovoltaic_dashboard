@@ -1657,6 +1657,34 @@ button.primary:hover {
   height: 250px;
 }
 
+.bar-axis-navigator {
+  display: grid;
+  grid-template-columns: auto minmax(120px, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 7px 12px;
+  border-top: 1px solid #e4eaf0;
+  border-bottom: 1px solid #d9e3ec;
+  background: #f8fbfe;
+  color: #526b83;
+  font-size: 11px;
+}
+
+.bar-axis-navigator input {
+  width: 100%;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--action);
+  cursor: ew-resize;
+}
+
+.bar-axis-navigator output {
+  color: #153c69;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 .compact-table {
   max-height: 245px;
 }
@@ -2002,7 +2030,10 @@ tbody tr:hover td {
     width: max-content;
     max-width: calc(100vw - 24px);
     margin: 0;
-    padding: 8px 10px 7px;
+    padding: 7px 8px 6px;
+    opacity: 0.48;
+    transform: scale(0.82);
+    transform-origin: right bottom;
   }
 
   .page-watermark img {
@@ -2033,5 +2064,31 @@ tbody tr:hover td {
 
   .line-chart {
     height: 320px;
+  }
+
+  .bar-axis-navigator {
+    grid-template-columns: auto minmax(90px, 1fr) auto;
+    gap: 7px;
+    padding: 8px 10px;
+    font-size: 10px;
+  }
+
+  .chart-tooltip {
+    font-size: 13px;
+  }
+
+  table {
+    color: #102a43;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  th {
+    font-size: 12px;
+  }
+
+  th,
+  td {
+    padding: 9px 10px;
   }
 }
