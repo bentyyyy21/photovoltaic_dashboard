@@ -168,6 +168,14 @@ function escapeChartText(value) {
     .replaceAll("'", "&#039;");
 }
 
+function distanceToSegment(px, py, x1, y1, x2, y2) {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  if (dx === 0 && dy === 0) return Math.hypot(px - x1, py - y1);
+  const ratio = Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / (dx * dx + dy * dy)));
+  return Math.hypot(px - (x1 + ratio * dx), py - (y1 + ratio * dy));
+}
+
 function registerChartHits(canvas, hits, width, height) {
   chartHits.set(canvas, { hits, width, height });
   if (canvas.dataset.interactive === "true") return;
@@ -201,13 +209,18 @@ function registerChartHits(canvas, hits, width, height) {
     const cssY = event.clientY - rect.top;
     const x = cssX * (meta.width / rect.width);
     const y = cssY * (meta.height / rect.height);
-    const hit = meta.hits.find((item) => item.type === "rect"
-      ? x >= item.x1 && x <= item.x2 && y >= item.y1 && y <= item.y2
-      : Math.hypot(x - item.x, y - item.y) <= (item.radius || 8));
+    const hit = meta.hits.find((item) => {
+      if (item.type === "rect") return x >= item.x1 && x <= item.x2 && y >= item.y1 && y <= item.y2;
+      if (item.type === "segment") {
+        return distanceToSegment(x, y, item.x1, item.y1, item.x2, item.y2) <= (item.radius || 6);
+      }
+      return Math.hypot(x - item.x, y - item.y) <= (item.radius || 8);
+    });
     if (!hit) {
       hideHover();
       return;
     }
+    tooltip.classList.toggle("is-context-label", Boolean(hit.contextLabel));
     if (hit.tooltipRows?.length) {
       tooltip.innerHTML = `
         <strong class="chart-tooltip-title">${escapeChartText(hit.tooltipTitle || "")}</strong>
@@ -764,6 +777,41 @@ function strokeSmoothValues(ctx, values, xAt, yAt) {
   strokeSegment();
 }
 
+function smoothSeriesHitSegments(item, xAt, yAt) {
+  const hits = [];
+  for (let index = 1; index < item.values.length; index += 1) {
+    const previousValue = item.values[index - 1];
+    const currentValue = item.values[index];
+    if (previousValue === null || currentValue === null) continue;
+    const x1 = xAt(index - 1);
+    const y1 = yAt(previousValue);
+    const x2 = xAt(index);
+    const y2 = yAt(currentValue);
+    const controlX = (x1 + x2) / 2;
+    let previousPoint = { x: x1, y: y1 };
+    for (let sample = 1; sample <= 10; sample += 1) {
+      const t = sample / 10;
+      const inverse = 1 - t;
+      const point = {
+        x: inverse ** 3 * x1 + 3 * inverse ** 2 * t * controlX + 3 * inverse * t ** 2 * controlX + t ** 3 * x2,
+        y: inverse ** 3 * y1 + 3 * inverse ** 2 * t * y1 + 3 * inverse * t ** 2 * y2 + t ** 3 * y2,
+      };
+      hits.push({
+        type: "segment",
+        x1: previousPoint.x,
+        y1: previousPoint.y,
+        x2: point.x,
+        y2: point.y,
+        radius: 5,
+        label: item.province,
+        contextLabel: true,
+      });
+      previousPoint = point;
+    }
+  }
+  return hits;
+}
+
 function renderChart(rows) {
   const months = [...new Set(rows.map((row) => row.month))].sort();
   const canvas = els.chart;
@@ -1194,7 +1242,8 @@ function drawMultiProvinceTrend(canvas, market) {
     ctx.fillText(label.item.province, textX, label.y + 4);
   });
 
-  const hits = months.map((month, monthIndex) => {
+  const contextHits = context.flatMap((item) => smoothSeriesHitSegments(item, xAt, yAt));
+  const axisHits = months.map((month, monthIndex) => {
     const compared = focused
       .map((item) => ({ province: item.province, value: item.values[monthIndex], color: item.focusColor }))
       .filter((item) => item.value !== null)
@@ -1220,7 +1269,7 @@ function drawMultiProvinceTrend(canvas, market) {
       })),
     };
   });
-  registerChartHits(canvas, hits, width, height);
+  registerChartHits(canvas, [...contextHits, ...axisHits], width, height);
 }
 
 function renderNationalTrend() {

@@ -31,6 +31,8 @@
   Fix: added segmented hover inspection with province labels, two-handle range filtering, out-of-range dimming, and province-to-axis value markers. Automated checks confirmed all three states and a 390px overflow-free mobile layout.
 - [Resolved P2] Mobile charts compressed a desktop-sized canvas, making labels small and clipping the final month.
   Fix: render canvases at the actual mobile width, center month labels with a larger right inset, and show national bars through a seven-province draggable window. Automated checks confirmed `5–11 / 21`, a complete `2026-06` label, and `scrollWidth === clientWidth` at 390px.
+- [Resolved P2] Unselected context lines could not be identified.
+  Fix: added sampled Bezier near-line hit testing for unselected province curves. Hovering the unselected Yunnan series was automatically verified to show only `云南` without changing selection state.
 
 **Required Fidelity Surfaces**
 
@@ -48,6 +50,7 @@
 4. Enlarged the national map, stacked the supporting panels, and verified map selection plus axis-trigger chart interaction in headless Edge.
 5. Added continuous visual-map inspection, dual range handles, province labels, and value markers; verified all interactions in headless Edge.
 6. Added mobile bar-axis navigation and true-width canvas rendering; inspected dedicated mobile bar and line screenshots.
+7. Added near-line identification for unselected context curves and verified the compact province-only tooltip.
 
 **Implementation Checklist**
 
@@ -64,5 +67,6 @@
 - [x] Mobile browser capture
 - [x] Mobile bar-axis range navigation
 - [x] Mobile final-month label visibility
+- [x] Unselected province curve identification
 
 final result: passed

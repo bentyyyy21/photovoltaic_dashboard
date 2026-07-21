@@ -852,6 +852,15 @@ select {
   font-weight: 700;
 }
 
+.chart-tooltip.is-context-label {
+  min-width: 0;
+  padding: 6px 9px;
+  background: rgba(15, 49, 82, 0.94);
+  color: #fff;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .chart-tooltip-list {
   display: grid;
   gap: 5px;
