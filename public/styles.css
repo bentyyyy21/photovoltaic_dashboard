@@ -2304,7 +2304,7 @@ html[data-theme="dark"] .watermark-contact {
   }
 
   table {
-    color: #102a43;
+    color: var(--ink);
     font-size: 13px;
     font-variant-numeric: tabular-nums;
   }
@@ -2317,4 +2317,16 @@ html[data-theme="dark"] .watermark-contact {
   td {
     padding: 9px 10px;
   }
+}
+
+html[data-theme="dark"] table,
+html[data-theme="dark"] td {
+  color: #dbe7f1;
+  -webkit-text-fill-color: #dbe7f1;
+}
+
+html[data-theme="dark"] th,
+html[data-theme="dark"] .parameter-sort {
+  color: #e5f1fa;
+  -webkit-text-fill-color: #e5f1fa;
 }
