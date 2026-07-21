@@ -19,8 +19,8 @@
 
 **Findings**
 
-- [Resolved P2] Fixed watermark obscured chart controls.
-  Fix: moved the watermark into normal page flow at the bottom-right while preserving the requested brand lockup and contact text.
+- [Resolved P2] Watermark placement and interaction.
+  Fix: restored the requested fixed bottom-right brand watermark, kept it non-interactive, and added compact mobile offsets so it remains anchored while scrolling.
 - [Resolved P2] Selected trend colors could be visually similar because colors followed province index.
   Fix: selected provinces now receive a stable blue/orange/green/purple/cyan/red focus palette; all other series use neutral low-opacity context lines.
 - [Resolved P2] Mobile overflow risk.
@@ -37,7 +37,7 @@
 **Comparison History**
 
 1. Initial desktop capture found watermark overlap and weak focus-color differentiation.
-2. Watermark placement and focused-series palette were corrected; JavaScript syntax, selector coverage, HTML IDs, and CSS brace balance passed.
+2. Fixed watermark offsets and focused-series palette were corrected; JavaScript syntax, selector coverage, HTML IDs, and CSS brace balance passed.
 3. Added realtime defaults, four-province focus, smooth curves, gradient bars, and restored table-header colors; desktop and mobile captures passed.
 
 **Implementation Checklist**

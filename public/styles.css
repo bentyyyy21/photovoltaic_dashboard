@@ -720,9 +720,9 @@ tbody tr:hover td {
 }
 
 .page-watermark {
-  position: relative;
-  right: auto;
-  bottom: auto;
+  position: fixed;
+  right: 16px;
+  bottom: 14px;
   z-index: 10;
   display: grid;
   gap: 5px;
@@ -735,7 +735,7 @@ tbody tr:hover td {
   opacity: 0.72;
   width: max-content;
   max-width: calc(100vw - 28px);
-  margin: 12px 14px 14px auto;
+  margin: 0;
   pointer-events: none;
   user-select: none;
 }
@@ -1644,12 +1644,12 @@ tbody tr:hover td {
   }
 
   .page-watermark {
-    position: relative;
-    right: auto;
-    bottom: auto;
+    position: fixed;
+    right: 10px;
+    bottom: 10px;
     width: max-content;
     max-width: calc(100vw - 24px);
-    margin: 0 12px 12px auto;
+    margin: 0;
     padding: 8px 10px 7px;
   }
 
