@@ -12,6 +12,7 @@ const state = {
   mapRankingContext: null,
   heatRange: [0, 100],
   mapScale: null,
+  parameterSort: {},
 };
 
 if ("scrollRestoration" in history) history.scrollRestoration = "manual";
@@ -66,7 +67,9 @@ const els = {
   nationalRealRows: document.querySelector("#nationalRealRows"),
   nationalDayHint: document.querySelector("#nationalDayHint"),
   nationalRealHint: document.querySelector("#nationalRealHint"),
-  coalRows: document.querySelector("#coalRows"),
+  priceParams: document.querySelector("#priceParams"),
+  disclosureHead: document.querySelector("#disclosureHead"),
+  disclosureRows: document.querySelector("#disclosureRows"),
   mechanismHead: document.querySelector("#mechanismHead"),
   mechanismRows: document.querySelector("#mechanismRows"),
   settlementHead: document.querySelector("#settlementHead"),
@@ -1379,40 +1382,48 @@ function renderNational() {
   els.nationalRealRows.innerHTML = rowHtml(realRows);
 }
 
-function renderParamTables() {
-  const provinces = state.data.provinces.map((item) => item.name);
-  const selectedYears = new Set();
-  for (let year = Number(els.nationalStart.value.slice(0, 4)); year <= Number(els.nationalEnd.value.slice(0, 4)); year += 1) {
-    selectedYears.add(String(year));
+function parameterDisplay(value, header) {
+  if (value === null || value === undefined || value === "") return "--";
+  if (typeof value !== "number") return escapeHtml(value).replaceAll("\n", "<br>");
+  if (header.includes("执行比例")) return `${fmt(value * 100, 1)}%`;
+  return Number(value).toLocaleString("zh-CN", { maximumFractionDigits: 6 });
+}
+
+function compareParameterValues(a, b, direction) {
+  const aMissing = a === null || a === undefined || a === "";
+  const bMissing = b === null || b === undefined || b === "";
+  if (aMissing || bMissing) return aMissing === bMissing ? 0 : (aMissing ? 1 : -1);
+  const comparison = typeof a === "number" && typeof b === "number"
+    ? a - b
+    : String(a).localeCompare(String(b), "zh-CN", { numeric: true });
+  return direction === "asc" ? comparison : -comparison;
+}
+
+function renderParameterTable(key, head, body) {
+  const table = state.data.parameterTables?.[key];
+  if (!table) {
+    head.innerHTML = "";
+    body.innerHTML = `<tr><td class="empty">暂无参数数据</td></tr>`;
+    return;
   }
-  els.coalRows.innerHTML = provinces.map((province) => {
-    const params = state.data.params[province];
-    return `<tr><td>${province}</td><td>${fmtParameter(params?.coalBenchmark2025, 4)}</td></tr>`;
-  }).join("");
+  head.closest("table").style.setProperty("--parameter-columns", table.headers.length);
+  const sort = state.parameterSort[key];
+  const rows = [...table.rows];
+  if (sort) rows.sort((a, b) => compareParameterValues(a[sort.index], b[sort.index], sort.direction));
+  head.innerHTML = `<tr>${table.headers.map((header, index) => {
+    const active = sort?.index === index;
+    const ariaSort = active ? (sort.direction === "asc" ? "ascending" : "descending") : "none";
+    return `<th aria-sort="${ariaSort}"><button class="parameter-sort" type="button" data-parameter-table="${key}" data-sort-index="${index}">
+      <span>${escapeHtml(header).replaceAll("\n", "<br>")}</span><span class="sort-mark" aria-hidden="true">${active ? (sort.direction === "asc" ? "↑" : "↓") : "↕"}</span>
+    </button></th>`;
+  }).join("")}</tr>`;
+  body.innerHTML = rows.map((row) => `<tr>${table.headers.map((header, index) => `<td>${parameterDisplay(row[index], header)}</td>`).join("")}</tr>`).join("");
+}
 
-  const mechanismYears = [...new Set(Object.values(state.data.params)
-    .flatMap((params) => Object.keys(params.mechanism || {})))].sort()
-    .filter((year) => selectedYears.has(String(year)));
-  els.mechanismHead.innerHTML = `<tr><th>省份</th>${mechanismYears.map((year) => `
-    <th>${year}年机制竞价结果<br>（元/kWh）</th>
-    <th>${year}年机制竞价增量执行比例</th>
-  `).join("")}</tr>`;
-  els.mechanismRows.innerHTML = provinces.map((province) => {
-    const mechanism = state.data.params[province]?.mechanism || {};
-    return `<tr><td>${province}</td>${mechanismYears.map((year) => {
-      const item = mechanism[year] || {};
-      return `<td>${fmtParameter(item.price, 4)}</td><td>${fmtParameter(item.ratio, 1, true)}</td>`;
-    }).join("")}</tr>`;
-  }).join("");
-
-  const months = [...new Set(Object.values(state.data.params)
-    .flatMap((params) => Object.keys(params.settlement || {})))].sort()
-    .filter((month) => month >= els.nationalStart.value && month <= els.nationalEnd.value);
-  els.settlementHead.innerHTML = `<tr><th>省份</th>${months.map((month) => `<th>${month}</th>`).join("")}</tr>`;
-  els.settlementRows.innerHTML = provinces.map((province) => {
-    const settlement = state.data.params[province]?.settlement || {};
-    return `<tr><td>${province}</td>${months.map((month) => `<td>${fmtParameter(settlement[month], 5)}</td>`).join("")}</tr>`;
-  }).join("");
+function renderParamTables() {
+  renderParameterTable("disclosure", els.disclosureHead, els.disclosureRows);
+  renderParameterTable("settlement", els.settlementHead, els.settlementRows);
+  renderParameterTable("mechanism", els.mechanismHead, els.mechanismRows);
 }
 
 function renderProvince() {
@@ -1572,6 +1583,18 @@ async function init() {
   [els.trendRangeStart, els.trendRangeEnd].forEach((input) => input.addEventListener("change", applyTrendRange));
   els.exportProvince.addEventListener("click", exportProvinceRows);
   els.exportNational.addEventListener("click", exportNationalRows);
+  els.priceParams.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-parameter-table]");
+    if (!button) return;
+    const key = button.dataset.parameterTable;
+    const index = Number(button.dataset.sortIndex);
+    const current = state.parameterSort[key];
+    state.parameterSort[key] = {
+      index,
+      direction: current?.index === index && current.direction === "asc" ? "desc" : "asc",
+    };
+    renderParamTables();
+  });
   window.addEventListener("resize", render);
 }
 

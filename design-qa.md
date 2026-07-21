@@ -54,6 +54,7 @@
 6. Added mobile bar-axis navigation and true-width canvas rendering; inspected dedicated mobile bar and line screenshots.
 7. Added near-line identification for unselected context curves and verified the compact province-only tooltip.
 8. Verified fresh-link default positioning with a stale province hash while preserving normal in-page navigation.
+9. Rebuilt the national parameter module from the three named workbook sheets, arranged the two reference-price tables above the full-width mechanism table, and verified independent ascending/descending sorting. Equal-width parameter columns and table-contained mobile scrolling were confirmed at 1440px and 390px.
 
 **Implementation Checklist**
 
@@ -72,5 +73,8 @@
 - [x] Mobile final-month label visibility
 - [x] Unselected province curve identification
 - [x] Fresh-link national map positioning
+- [x] Updated parameter workbook structure and values
+- [x] Independent parameter-column sorting
+- [x] Equal-width parameter table columns
 
 final result: passed

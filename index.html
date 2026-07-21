@@ -226,32 +226,30 @@
           <h2>全国价格参数</h2>
         </div>
         <div class="params-tables">
-          <article>
-            <h3>燃煤基准价</h3>
+          <article class="params-card">
+            <h3>交易中心信息披露价格</h3>
             <div class="table-wrap compact-table">
-              <table>
-                <thead>
-                  <tr><th>省份</th><th>2025 燃煤基准价</th></tr>
-                </thead>
-                <tbody id="coalRows"></tbody>
+              <table id="disclosureTable" class="parameter-table">
+                <thead id="disclosureHead"></thead>
+                <tbody id="disclosureRows"></tbody>
               </table>
             </div>
           </article>
-          <article>
-            <h3>机制竞价</h3>
+          <article class="params-card">
+            <h3>结算单参考价</h3>
             <div class="table-wrap compact-table">
-              <table>
-                <thead id="mechanismHead"></thead>
-                <tbody id="mechanismRows"></tbody>
-              </table>
-            </div>
-          </article>
-          <article>
-            <h3>结算单电价参考</h3>
-            <div class="table-wrap compact-table">
-              <table>
+              <table id="settlementTable" class="parameter-table">
                 <thead id="settlementHead"></thead>
                 <tbody id="settlementRows"></tbody>
+              </table>
+            </div>
+          </article>
+          <article class="params-card params-card-wide">
+            <h3>机制竞价及差价分摊</h3>
+            <div class="table-wrap compact-table">
+              <table id="mechanismTable" class="parameter-table">
+                <thead id="mechanismHead"></thead>
+                <tbody id="mechanismRows"></tbody>
               </table>
             </div>
           </article>

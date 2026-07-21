@@ -737,37 +737,94 @@ def ensure_curve_sheets(provinces_requiring_curve: set[str]) -> None:
 
 
 def load_params() -> dict[str, dict[str, Any]]:
-    wb = openpyxl.load_workbook(PRICE_BOOK, data_only=True)
-    ws = wb[wb.sheetnames[0]]
-    header1 = [cell_text(v) for v in next(ws.iter_rows(min_row=1, max_row=1, values_only=True))]
-    header2 = [v for v in next(ws.iter_rows(min_row=2, max_row=2, values_only=True))]
-    rows = {}
-    for row in ws.iter_rows(min_row=3, values_only=True):
+    wb = openpyxl.load_workbook(PRICE_BOOK, data_only=True, read_only=True)
+    disclosure = wb["交易中心信息披露价格"]
+    settlement = wb["结算单参考价"]
+    mechanism = wb["机制竞价及差价分摊"]
+    rows: dict[str, dict[str, Any]] = {}
+
+    for row in disclosure.iter_rows(min_row=3, values_only=True):
         province = cell_text(row[2] if len(row) > 2 else "")
         if not province:
             continue
-        params = {
+        rows[province] = {
             "region": cell_text(row[1] if len(row) > 1 else ""),
             "coalBenchmark2025": parameter_value(row[3] if len(row) > 3 else None),
             "mechanism": {},
             "settlement": {},
         }
-        for idx, label in enumerate(header1):
-            year_match = re.search(r"(20\d{2})年机制竞价", label)
-            if year_match and "执行比例" not in label and idx < len(row):
-                year = year_match.group(1)
-                params["mechanism"].setdefault(year, {})["price"] = parameter_value(row[idx])
-            if "执行比例" in label and idx < len(row):
-                year_match = re.search(r"(20\d{2})年", label)
-                if year_match:
-                    year = year_match.group(1)
-                    params["mechanism"].setdefault(year, {})["ratio"] = parameter_value(row[idx])
-        for idx, month_cell in enumerate(header2):
-            month = parameter_month(month_cell)
+
+    settlement_months = [
+        parameter_month(value)
+        for value in next(settlement.iter_rows(min_row=2, max_row=2, values_only=True))
+    ]
+    for row in settlement.iter_rows(min_row=3, values_only=True):
+        province = cell_text(row[2] if len(row) > 2 else "")
+        if not province:
+            continue
+        params = rows.setdefault(province, {"region": "", "coalBenchmark2025": None, "mechanism": {}, "settlement": {}})
+        for idx, month in enumerate(settlement_months):
             if month and idx < len(row):
                 params["settlement"][month] = parameter_value(row[idx])
-        rows[province] = params
+
+    mechanism_headers = [
+        cell_text(value)
+        for value in next(mechanism.iter_rows(min_row=1, max_row=1, values_only=True))
+    ]
+    for row in mechanism.iter_rows(min_row=3, values_only=True):
+        province = cell_text(row[2] if len(row) > 2 else "")
+        if not province:
+            continue
+        params = rows.setdefault(province, {"region": "", "coalBenchmark2025": None, "mechanism": {}, "settlement": {}})
+        for idx, label in enumerate(mechanism_headers):
+            year_match = re.search(r"(20\d{2})年机制竞价", label)
+            if not year_match or idx >= len(row):
+                continue
+            year = year_match.group(1)
+            field = "ratio" if "执行比例" in label else "price"
+            params["mechanism"].setdefault(year, {})[field] = parameter_value(row[idx])
+    wb.close()
     return rows
+
+
+def load_parameter_tables() -> dict[str, dict[str, Any]]:
+    wb = openpyxl.load_workbook(PRICE_BOOK, data_only=True, read_only=True)
+
+    def table_rows(sheet_name: str, headers: list[str]) -> dict[str, Any]:
+        ws = wb[sheet_name]
+        rows = []
+        current_region = ""
+        for row in ws.iter_rows(min_row=3, values_only=True):
+            region = cell_text(row[1] if len(row) > 1 else "")
+            province = cell_text(row[2] if len(row) > 2 else "")
+            if region:
+                current_region = region
+            if not province:
+                continue
+            values = [current_region, province]
+            values.extend(parameter_value(row[idx]) if idx < len(row) else None for idx in range(3, len(headers) + 1))
+            rows.append(values)
+        return {"title": sheet_name, "headers": headers, "rows": rows}
+
+    disclosure_ws = wb["交易中心信息披露价格"]
+    disclosure_row = next(disclosure_ws.iter_rows(min_row=1, max_row=1, values_only=True))
+    disclosure_headers = ["区域", "省份/电网区域"] + [cell_text(value) for value in disclosure_row[3:]]
+
+    settlement_ws = wb["结算单参考价"]
+    settlement_row = next(settlement_ws.iter_rows(min_row=2, max_row=2, values_only=True))
+    settlement_headers = ["区域", "省份/电网区域"] + [parameter_month(value) or cell_text(value) for value in settlement_row[3:]]
+
+    mechanism_ws = wb["机制竞价及差价分摊"]
+    mechanism_row = next(mechanism_ws.iter_rows(min_row=1, max_row=1, values_only=True))
+    mechanism_headers = ["区域", "省份/电网区域"] + [cell_text(value) for value in mechanism_row[3:]]
+
+    tables = {
+        "disclosure": table_rows("交易中心信息披露价格", disclosure_headers),
+        "settlement": table_rows("结算单参考价", settlement_headers),
+        "mechanism": table_rows("机制竞价及差价分摊", mechanism_headers),
+    }
+    wb.close()
+    return tables
 
 
 def load_installation_capacity() -> dict[str, Any]:
@@ -1568,6 +1625,7 @@ def merge_cached_outputs() -> dict[str, Any]:
         "provinces": provinces,
         "monthly": monthly,
         "params": params,
+        "parameterTables": load_parameter_tables(),
         "capacity": load_installation_capacity(),
     }
     with (DATA_DIR / "dashboard-data.json").open("w", encoding="utf-8") as fh:
