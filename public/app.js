@@ -14,6 +14,8 @@ const state = {
   mapScale: null,
 };
 
+if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+
 const NATIONAL_DEFAULT_START = "2025-06";
 const NATIONAL_DEFAULT_END = "2026-06";
 const PROVINCE_DEFAULT_START = "2026-01";
@@ -140,6 +142,17 @@ function setActiveNavigation(targetId) {
   els.navLinks.forEach((link) => {
     link.classList.toggle("is-active", link.getAttribute("href") === `#${targetId}`);
   });
+}
+
+function focusDefaultNationalMap() {
+  if (window.location.hash) {
+    history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+  }
+  setActiveNavigation("nationalModule");
+  const mapPanel = document.querySelector(".overview-panel");
+  if (!mapPanel) return;
+  const top = Math.max(0, mapPanel.getBoundingClientRect().top + window.scrollY - 8);
+  window.scrollTo({ top, left: 0, behavior: "auto" });
 }
 
 function initNavigation() {
@@ -1522,6 +1535,8 @@ async function init() {
   }
   initHeatLegendInteraction();
   render();
+  requestAnimationFrame(() => requestAnimationFrame(focusDefaultNationalMap));
+  window.setTimeout(focusDefaultNationalMap, 160);
   els.province.addEventListener("change", () => {
     updateProvinceMonths(false);
     renderProvince();

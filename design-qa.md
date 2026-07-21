@@ -33,6 +33,8 @@
   Fix: render canvases at the actual mobile width, center month labels with a larger right inset, and show national bars through a seven-province draggable window. Automated checks confirmed `5–11 / 21`, a complete `2026-06` label, and `scrollWidth === clientWidth` at 390px.
 - [Resolved P2] Unselected context lines could not be identified.
   Fix: added sampled Bezier near-line hit testing for unselected province curves. Hovering the unselected Yunnan series was automatically verified to show only `云南` without changing selection state.
+- [Resolved P2] Fresh links could restore a province anchor or stale scroll position.
+  Fix: disabled browser scroll restoration for initial load, removed stale hashes, and focused the national map after rendering. A full load with `#provinceModule` was verified to end with an empty hash, active national navigation, and the map 8px from the viewport top.
 
 **Required Fidelity Surfaces**
 
@@ -51,6 +53,7 @@
 5. Added continuous visual-map inspection, dual range handles, province labels, and value markers; verified all interactions in headless Edge.
 6. Added mobile bar-axis navigation and true-width canvas rendering; inspected dedicated mobile bar and line screenshots.
 7. Added near-line identification for unselected context curves and verified the compact province-only tooltip.
+8. Verified fresh-link default positioning with a stale province hash while preserving normal in-page navigation.
 
 **Implementation Checklist**
 
@@ -68,5 +71,6 @@
 - [x] Mobile bar-axis range navigation
 - [x] Mobile final-month label visibility
 - [x] Unselected province curve identification
+- [x] Fresh-link national map positioning
 
 final result: passed
