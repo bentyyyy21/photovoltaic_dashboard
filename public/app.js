@@ -1,9 +1,9 @@
 const state = {
   data: null,
-  hiddenNationalSeries: {
-    日前: new Set(),
-    实时: new Set(),
-  },
+  nationalTrendMarket: "实时",
+  focusedNationalSeries: new Set(),
+  showTrendContext: true,
+  trendSearch: "",
   hiddenProvinceSeries: new Set(),
   mapMode: "price",
   mapReady: false,
@@ -20,6 +20,7 @@ const MAP_PRICE_ALIASES = {
   蒙东: "内蒙古",
 };
 const HEAT_COLORS = ["#2e9d68", "#8bcf63", "#f2d34f", "#f59e3d", "#df3f3f"];
+const FOCUS_COLORS = ["#1769d2", "#f97316", "#3a9b35", "#8b5cf6", "#0891b2", "#dc3f64"];
 
 const els = {
   stamp: document.querySelector("#dataStamp"),
@@ -37,10 +38,19 @@ const els = {
   chart: document.querySelector("#trendChart"),
   nationalDayChart: document.querySelector("#nationalDayChart"),
   nationalRealChart: document.querySelector("#nationalRealChart"),
-  nationalDayTrendChart: document.querySelector("#nationalDayTrendChart"),
-  nationalRealTrendChart: document.querySelector("#nationalRealTrendChart"),
-  nationalDayLegend: document.querySelector("#nationalDayLegend"),
-  nationalRealLegend: document.querySelector("#nationalRealLegend"),
+  nationalTrendChart: document.querySelector("#nationalTrendChart"),
+  nationalTrendTitle: document.querySelector("#nationalTrendTitle"),
+  nationalTrendPeriod: document.querySelector("#nationalTrendPeriod"),
+  nationalTrendSearch: document.querySelector("#nationalTrendSearch"),
+  nationalTrendSelector: document.querySelector("#nationalTrendSelector"),
+  trendMarketButtons: document.querySelectorAll("[data-trend-market]"),
+  focusAllProvinces: document.querySelector("#focusAllProvinces"),
+  clearFocusedProvinces: document.querySelector("#clearFocusedProvinces"),
+  toggleTrendContext: document.querySelector("#toggleTrendContext"),
+  trendRangeStart: document.querySelector("#trendRangeStart"),
+  trendRangeEnd: document.querySelector("#trendRangeEnd"),
+  trendRangeStartLabel: document.querySelector("#trendRangeStartLabel"),
+  trendRangeEndLabel: document.querySelector("#trendRangeEndLabel"),
   provinceTrendLegend: document.querySelector("#provinceTrendLegend"),
   nationalDayRows: document.querySelector("#nationalDayRows"),
   nationalRealRows: document.querySelector("#nationalRealRows"),
@@ -68,6 +78,16 @@ const els = {
   mapLegendMin: document.querySelector("#mapLegendMin"),
   mapLegendMid: document.querySelector("#mapLegendMid"),
   mapLegendMax: document.querySelector("#mapLegendMax"),
+  overviewRankingTitle: document.querySelector("#overviewRankingTitle"),
+  overviewRankingPeriod: document.querySelector("#overviewRankingPeriod"),
+  overviewRankingRows: document.querySelector("#overviewRankingRows"),
+  overviewPeriod: document.querySelector("#overviewPeriod"),
+  overviewDayAvg: document.querySelector("#overviewDayAvg"),
+  overviewRealAvg: document.querySelector("#overviewRealAvg"),
+  overviewTopValue: document.querySelector("#overviewTopValue"),
+  overviewTopProvince: document.querySelector("#overviewTopProvince"),
+  overviewLowValue: document.querySelector("#overviewLowValue"),
+  overviewLowProvince: document.querySelector("#overviewLowProvince"),
   provinceLabels: document.querySelectorAll("[data-province-label]"),
   navLinks: document.querySelectorAll(".dashboard-nav a"),
 };
@@ -374,6 +394,23 @@ function setMapMode(mode) {
   renderHeatmap();
 }
 
+function renderOverviewRanking(values, metric, unit, digits, period) {
+  const ranked = [...values.entries()]
+    .filter(([, value]) => Number.isFinite(value))
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+  els.overviewRankingTitle.textContent = `${metric}省份排名`;
+  els.overviewRankingPeriod.textContent = period;
+  els.overviewRankingRows.innerHTML = ranked.map(([province, value], index) => `
+    <li>
+      <span class="rank-number">${index + 1}</span>
+      <strong>${escapeHtml(province)}</strong>
+      <span>${fmt(value, digits)}</span>
+      <small>${escapeHtml(unit)}</small>
+    </li>
+  `).join("") || `<li class="empty">暂无可排名数据</li>`;
+}
+
 function renderHeatmap() {
   const isPrice = state.mapMode === "price";
   const market = els.mapMarket.value;
@@ -403,6 +440,7 @@ function renderHeatmap() {
   els.mapLegendMin.textContent = numericValues.length ? fmt(min, digits) : "--";
   els.mapLegendMid.textContent = numericValues.length ? fmt((min + max) / 2, digits) : "--";
   els.mapLegendMax.textContent = numericValues.length ? fmt(max, digits) : "--";
+  renderOverviewRanking(values, metric, unit, digits, period);
 
   if (!state.mapReady) return;
   els.mapHost.querySelectorAll("[data-province]").forEach((path) => {
@@ -430,6 +468,31 @@ function renderSummary(rows) {
   els.realAvg.textContent = fmt(real?.weightedAvg);
   els.monthCount.textContent = new Set(rows.map((row) => row.month)).size.toString();
   els.volumeTotal.textContent = fmt(rows.reduce((sum, row) => sum + row.volume, 0), 0);
+}
+
+function strokeSmoothValues(ctx, values, xAt, yAt) {
+  let segment = [];
+  const strokeSegment = () => {
+    if (!segment.length) return;
+    ctx.beginPath();
+    ctx.moveTo(segment[0].x, segment[0].y);
+    for (let index = 1; index < segment.length; index += 1) {
+      const previous = segment[index - 1];
+      const current = segment[index];
+      const controlX = (previous.x + current.x) / 2;
+      ctx.bezierCurveTo(controlX, previous.y, controlX, current.y, current.x, current.y);
+    }
+    ctx.stroke();
+    segment = [];
+  };
+  values.forEach((value, index) => {
+    if (value === null) {
+      strokeSegment();
+      return;
+    }
+    segment.push({ x: xAt(index), y: yAt(value) });
+  });
+  strokeSegment();
 }
 
 function renderChart(rows) {
@@ -503,20 +566,7 @@ function renderChart(rows) {
     ctx.strokeStyle = item.color;
     ctx.fillStyle = item.color;
     ctx.lineWidth = 2;
-    ctx.beginPath();
-    let started = false;
-    item.values.forEach((value, index) => {
-      if (value === null) return;
-      const x = xAt(index);
-      const y = yAt(value);
-      if (!started) {
-        ctx.moveTo(x, y);
-        started = true;
-      } else {
-        ctx.lineTo(x, y);
-      }
-    });
-    ctx.stroke();
+    strokeSmoothValues(ctx, item.values, xAt, yAt);
     item.values.forEach((value, index) => {
       if (value === null) return;
       const x = xAt(index);
@@ -578,8 +628,24 @@ function drawBarChart(canvas, rows, color) {
     const h = (value / max) * chartH;
     const x = pad.left + index * (barW + gap);
     const y = pad.top + chartH - h;
-    ctx.fillStyle = color;
-    ctx.fillRect(x, y, barW, h);
+    const palette = color === "#0f766e"
+      ? ["#5bd4c1", "#149785", "#087166"]
+      : ["#78b7ff", "#2f80ed", "#175dcc"];
+    const gradient = ctx.createLinearGradient(0, y, 0, pad.top + chartH);
+    gradient.addColorStop(0, palette[0]);
+    gradient.addColorStop(0.55, palette[1]);
+    gradient.addColorStop(1, palette[2]);
+    const radius = Math.min(5, barW / 2, h);
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.moveTo(x, pad.top + chartH);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.lineTo(x + barW - radius, y);
+    ctx.quadraticCurveTo(x + barW, y, x + barW, y + radius);
+    ctx.lineTo(x + barW, pad.top + chartH);
+    ctx.closePath();
+    ctx.fill();
     hits.push({
       type: "rect",
       x1: x,
@@ -603,7 +669,7 @@ function colorForIndex(index) {
   return palette[index % palette.length];
 }
 
-function drawMultiProvinceTrend(canvas, market) {
+function nationalTrendSeries(market) {
   const start = els.nationalStart.value;
   const end = els.nationalEnd.value;
   const months = [...new Set(state.data.monthly
@@ -622,17 +688,65 @@ function drawMultiProvinceTrend(canvas, market) {
       values: months.map((month) => rows.find((row) => row.month === month)?.weightedAvg ?? null),
     };
   });
-  const legend = market === "日前" ? els.nationalDayLegend : els.nationalRealLegend;
-  const hiddenSet = state.hiddenNationalSeries[market];
-  renderToggleLegend(
-    legend,
-    allSeries.map((item) => ({ name: item.province, color: item.color })),
-    hiddenSet,
-    renderNational,
-  );
-  const series = allSeries.filter((item) =>
-    !hiddenSet.has(item.province) && item.values.some((value) => value !== null)
-  );
+  return { months, allSeries };
+}
+
+function renderNationalTrendSelector(allSeries) {
+  const query = state.trendSearch.trim().toLocaleLowerCase("zh-CN");
+  const visibleItems = allSeries.filter((item) => !query || item.province.toLocaleLowerCase("zh-CN").includes(query));
+  const focusedNames = [...state.focusedNationalSeries];
+  els.nationalTrendSelector.innerHTML = visibleItems.map((item) => {
+    const latest = [...item.values].reverse().find((value) => value !== null);
+    const checked = state.focusedNationalSeries.has(item.province);
+    const focusIndex = focusedNames.indexOf(item.province);
+    const color = checked ? FOCUS_COLORS[focusIndex % FOCUS_COLORS.length] : "#a9b5c1";
+    return `
+      <label class="focus-province-item${checked ? " is-focused" : ""}">
+        <input type="checkbox" value="${escapeHtml(item.province)}" ${checked ? "checked" : ""} />
+        <i style="background:${color}"></i>
+        <span>${escapeHtml(item.province)}</span>
+        <strong>${fmt(latest)}</strong>
+      </label>
+    `;
+  }).join("") || `<p class="empty legend-empty">未找到匹配省份</p>`;
+  els.nationalTrendSelector.querySelectorAll("input[type='checkbox']").forEach((input) => {
+    input.addEventListener("change", () => {
+      if (input.checked) state.focusedNationalSeries.add(input.value);
+      else state.focusedNationalSeries.delete(input.value);
+      renderNationalTrend();
+    });
+  });
+}
+
+function syncTrendRangeControls() {
+  const months = [...new Set(state.data.monthly.map((row) => row.month))].sort();
+  if (!months.length) return;
+  const startIndex = Math.max(0, months.indexOf(els.nationalStart.value));
+  const endIndex = Math.max(startIndex, months.indexOf(els.nationalEnd.value));
+  [els.trendRangeStart, els.trendRangeEnd].forEach((input) => {
+    input.max = String(months.length - 1);
+  });
+  els.trendRangeStart.value = String(startIndex);
+  els.trendRangeEnd.value = String(endIndex);
+  els.trendRangeStartLabel.textContent = months[startIndex];
+  els.trendRangeEndLabel.textContent = months[endIndex];
+}
+
+function applyTrendRange() {
+  const months = [...new Set(state.data.monthly.map((row) => row.month))].sort();
+  if (!months.length) return;
+  let startIndex = Number(els.trendRangeStart.value);
+  let endIndex = Number(els.trendRangeEnd.value);
+  if (startIndex > endIndex) [startIndex, endIndex] = [endIndex, startIndex];
+  els.nationalStart.value = months[startIndex];
+  els.nationalEnd.value = months[endIndex];
+  renderNationalModule();
+}
+
+function drawMultiProvinceTrend(canvas, market) {
+  const { months, allSeries } = nationalTrendSeries(market);
+  const drawableSeries = allSeries.filter((item) => item.values.some((value) => value !== null));
+  renderNationalTrendSelector(allSeries);
 
   const rect = canvas.getBoundingClientRect();
   const dpr = window.devicePixelRatio || 1;
@@ -644,7 +758,7 @@ function drawMultiProvinceTrend(canvas, market) {
   const height = canvas.height / dpr;
   ctx.clearRect(0, 0, width, height);
 
-  const values = series.flatMap((item) => item.values).filter((value) => value !== null);
+  const values = drawableSeries.flatMap((item) => item.values).filter((value) => value !== null);
   if (!months.length || !values.length) {
     ctx.fillStyle = "#657383";
     ctx.font = "14px Microsoft YaHei, Segoe UI, sans-serif";
@@ -658,7 +772,7 @@ function drawMultiProvinceTrend(canvas, market) {
   const span = maxValue - minValue || 1;
   const yMin = Math.max(0, minValue - span * 0.12);
   const yMax = maxValue + span * 0.12;
-  const pad = { left: 64, right: 44, top: 34, bottom: 50 };
+  const pad = { left: 62, right: 76, top: 28, bottom: 48 };
   const chartW = width - pad.left - pad.right;
   const chartH = height - pad.top - pad.bottom;
   const xAt = (index) => pad.left + (months.length === 1 ? chartW / 2 : (chartW * index) / (months.length - 1));
@@ -682,42 +796,70 @@ function drawMultiProvinceTrend(canvas, market) {
     ctx.fillText(month, x - 20, height - 18);
   });
 
-  const hits = [];
-  series.forEach((item) => {
-    ctx.strokeStyle = item.color;
-    ctx.fillStyle = item.color;
-    ctx.lineWidth = item.province === els.province.value ? 2.8 : 1.4;
-    ctx.beginPath();
-    let started = false;
-    item.values.forEach((value, monthIndex) => {
-      if (value === null) return;
-      const x = xAt(monthIndex);
-      const y = yAt(value);
-      if (!started) {
-        ctx.moveTo(x, y);
-        started = true;
-      } else {
-        ctx.lineTo(x, y);
-      }
-    });
-    ctx.stroke();
+  const focused = [...state.focusedNationalSeries]
+    .map((province) => drawableSeries.find((item) => item.province === province))
+    .filter(Boolean);
+  focused.forEach((item, index) => { item.focusColor = FOCUS_COLORS[index % FOCUS_COLORS.length]; });
+  const context = state.showTrendContext
+    ? drawableSeries.filter((item) => !state.focusedNationalSeries.has(item.province))
+    : [];
+
+  const drawSeries = (item, isFocused) => {
+    ctx.strokeStyle = isFocused ? item.focusColor : "rgba(130, 149, 168, 0.22)";
+    ctx.fillStyle = isFocused ? item.focusColor : "rgba(130, 149, 168, 0.16)";
+    ctx.lineWidth = isFocused ? 2.4 : 1;
+    strokeSmoothValues(ctx, item.values, xAt, yAt);
+    if (!isFocused) return;
     item.values.forEach((value, monthIndex) => {
       if (value === null) return;
       const x = xAt(monthIndex);
       const y = yAt(value);
       ctx.beginPath();
-      ctx.arc(x, y, item.province === els.province.value ? 3.8 : 2.6, 0, Math.PI * 2);
+      ctx.arc(x, y, 3.2, 0, Math.PI * 2);
       ctx.fill();
-      hits.push({
-        type: "point",
-        x,
-        y,
-        radius: 8,
-        label: `${item.province} · ${months[monthIndex]} · ${fmt(value)} 元/MWh`,
-      });
     });
+    const latestIndex = item.values.reduce((found, value, index) => value !== null ? index : found, -1);
+    if (latestIndex >= 0) {
+      ctx.font = "600 11px Microsoft YaHei, Segoe UI, sans-serif";
+      ctx.fillText(item.province, Math.min(width - 48, xAt(latestIndex) + 7), yAt(item.values[latestIndex]) + 4);
+    }
+  };
+  context.forEach((item) => drawSeries(item, false));
+  focused.forEach((item) => drawSeries(item, true));
+
+  const hits = months.map((month, monthIndex) => {
+    const compared = focused
+      .map((item) => ({ province: item.province, value: item.values[monthIndex] }))
+      .filter((item) => item.value !== null)
+      .sort((a, b) => b.value - a.value);
+    const halfStep = months.length > 1 ? chartW / (months.length - 1) / 2 : chartW / 2;
+    return {
+      type: "rect",
+      x1: Math.max(pad.left, xAt(monthIndex) - halfStep),
+      x2: Math.min(width - pad.right, xAt(monthIndex) + halfStep),
+      y1: pad.top,
+      y2: pad.top + chartH,
+      label: `${month}\n${compared.map((item) => `${item.province}  ${fmt(item.value)} 元/MWh`).join("\n") || "未选择重点省份"}`,
+    };
   });
   registerChartHits(canvas, hits, width, height);
+}
+
+function renderNationalTrend() {
+  const market = state.nationalTrendMarket;
+  els.nationalTrendTitle.textContent = `各省${market}光伏加权均价走势`;
+  els.nationalTrendPeriod.textContent = `${els.nationalStart.value} 至 ${els.nationalEnd.value}`;
+  els.nationalTrendChart.setAttribute("aria-label", `各省${market}光伏加权均价走势`);
+  els.trendMarketButtons.forEach((button) => {
+    const active = button.dataset.trendMarket === market;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-pressed", active ? "true" : "false");
+  });
+  els.toggleTrendContext.classList.toggle("is-active", !state.showTrendContext);
+  els.toggleTrendContext.setAttribute("aria-pressed", state.showTrendContext ? "false" : "true");
+  els.toggleTrendContext.textContent = state.showTrendContext ? "仅看所选" : "显示全部背景";
+  syncTrendRangeControls();
+  drawMultiProvinceTrend(els.nationalTrendChart, market);
 }
 
 function provinceDisplayName(name) {
@@ -759,6 +901,23 @@ function renderResults(rows) {
   `).join("") || `<tr><td colspan="5" class="empty">当前筛选条件没有可计算结果</td></tr>`;
 }
 
+function renderOverviewSummary(dayRows, realRows) {
+  const start = els.nationalStart.value;
+  const end = els.nationalEnd.value;
+  const rows = state.data.monthly.filter((row) => row.month >= start && row.month <= end);
+  const day = weightedCycle(rows, "日前", "全国", start, end);
+  const real = weightedCycle(rows, "实时", "全国", start, end);
+  const top = realRows[0];
+  const low = realRows[realRows.length - 1];
+  els.overviewPeriod.textContent = `${start} 至 ${end}`;
+  els.overviewDayAvg.textContent = fmt(day.weightedAvg);
+  els.overviewRealAvg.textContent = fmt(real.weightedAvg);
+  els.overviewTopValue.textContent = fmt(top?.weightedAvg);
+  els.overviewTopProvince.textContent = top?.province || "--";
+  els.overviewLowValue.textContent = fmt(low?.weightedAvg);
+  els.overviewLowProvince.textContent = low?.province || "--";
+}
+
 function renderNational() {
   const dayRows = nationalRows("日前");
   const realRows = nationalRows("实时");
@@ -766,8 +925,8 @@ function renderNational() {
   els.nationalRealHint.textContent = `${els.nationalStart.value} 至 ${els.nationalEnd.value}`;
   drawBarChart(els.nationalDayChart, dayRows, "#0f766e");
   drawBarChart(els.nationalRealChart, realRows, "#2563eb");
-  drawMultiProvinceTrend(els.nationalDayTrendChart, "日前");
-  drawMultiProvinceTrend(els.nationalRealTrendChart, "实时");
+  renderOverviewSummary(dayRows, realRows);
+  renderNationalTrend();
   const rowHtml = (rows) => rows.map((row) => `
     <tr>
       <td>${row.province}</td>
@@ -926,6 +1085,8 @@ async function init() {
   }
   updateNationalMonths(false);
   updateProvinceMonths(false);
+  state.focusedNationalSeries = new Set(["广东", "福建", "重庆", "山西"]
+    .filter((province) => state.data.provinces.some((item) => item.name === province)));
   initNavigation();
   try {
     await loadMap();
@@ -943,6 +1104,27 @@ async function init() {
   els.mapModeButtons.forEach((button) => button.addEventListener("click", () => setMapMode(button.dataset.mapMode)));
   els.mapMarket.addEventListener("change", renderHeatmap);
   els.mapCapacity.addEventListener("change", renderHeatmap);
+  els.trendMarketButtons.forEach((button) => button.addEventListener("click", () => {
+    state.nationalTrendMarket = button.dataset.trendMarket;
+    renderNationalTrend();
+  }));
+  els.nationalTrendSearch.addEventListener("input", () => {
+    state.trendSearch = els.nationalTrendSearch.value;
+    renderNationalTrendSelector(nationalTrendSeries(state.nationalTrendMarket).allSeries);
+  });
+  els.focusAllProvinces.addEventListener("click", () => {
+    state.focusedNationalSeries = new Set(state.data.provinces.map((item) => item.name));
+    renderNationalTrend();
+  });
+  els.clearFocusedProvinces.addEventListener("click", () => {
+    state.focusedNationalSeries.clear();
+    renderNationalTrend();
+  });
+  els.toggleTrendContext.addEventListener("click", () => {
+    state.showTrendContext = !state.showTrendContext;
+    renderNationalTrend();
+  });
+  [els.trendRangeStart, els.trendRangeEnd].forEach((input) => input.addEventListener("change", applyTrendRange));
   els.exportProvince.addEventListener("click", exportProvinceRows);
   els.exportNational.addEventListener("click", exportNationalRows);
   window.addEventListener("resize", render);

@@ -35,11 +35,11 @@
         </div>
         <div class="filters national-filters" aria-label="全国数据筛选条件">
           <label>
-            <span>全国开始月份</span>
+            <span>开始月份</span>
             <select id="nationalStartMonth"></select>
           </label>
           <label>
-            <span>全国结束月份</span>
+            <span>结束月份</span>
             <select id="nationalEndMonth"></select>
           </label>
           <div class="filter-action">
@@ -47,7 +47,7 @@
           </div>
         </div>
 
-        <section class="panel map-panel" aria-label="全国能源数据热力图">
+        <section class="panel map-panel overview-panel" aria-label="全国能源数据热力图与市场概览">
           <div class="panel-head map-panel-head">
             <h2 id="mapTitle">各省实时光伏加权均价</h2>
             <span id="mapPeriodHint"></span>
@@ -77,26 +77,93 @@
               </select>
             </label>
           </div>
-          <div class="map-content">
-            <div id="mapStage" class="map-stage">
-              <div id="chinaMapHost" class="china-map-host" aria-live="polite"></div>
-              <div id="mapTooltip" class="map-tooltip" hidden></div>
-            </div>
-            <aside class="map-legend" aria-label="热力图图例">
-              <strong id="mapLegendTitle">实时光伏加权均价</strong>
-              <span id="mapLegendUnit">元/MWh</span>
-              <div class="heat-scale" aria-hidden="true"></div>
-              <div class="heat-scale-labels">
-                <span id="mapLegendMin">--</span>
-                <span id="mapLegendMid">--</span>
-                <span id="mapLegendMax">--</span>
+          <div class="overview-content">
+            <div class="overview-map-column">
+              <div class="map-content">
+                <div id="mapStage" class="map-stage">
+                  <div id="chinaMapHost" class="china-map-host" aria-live="polite"></div>
+                  <div id="mapTooltip" class="map-tooltip" hidden></div>
+                </div>
+                <aside class="map-legend" aria-label="热力图图例">
+                  <strong id="mapLegendTitle">实时光伏加权均价</strong>
+                  <span id="mapLegendUnit">元/MWh</span>
+                  <div class="heat-scale" aria-hidden="true"></div>
+                  <div class="heat-scale-labels">
+                    <span id="mapLegendMin">--</span>
+                    <span id="mapLegendMid">--</span>
+                    <span id="mapLegendMax">--</span>
+                  </div>
+                  <div class="map-no-data"><i></i><span>暂无数据</span></div>
+                </aside>
               </div>
-              <div class="map-no-data"><i></i><span>暂无数据</span></div>
-            </aside>
+              <p class="map-disclaimer">仅用于示意图之用</p>
+            </div>
+            <section class="overview-ranking" aria-label="实时电价省份排名">
+              <div class="subsection-head">
+                <h3 id="overviewRankingTitle">实时电价省份排名</h3>
+                <span id="overviewRankingPeriod"></span>
+              </div>
+              <ol id="overviewRankingRows" class="ranking-list"></ol>
+            </section>
+            <section class="overview-summary" aria-label="全国市场概览">
+              <div class="subsection-head">
+                <h3>全国概览</h3>
+                <span id="overviewPeriod"></span>
+              </div>
+              <div class="overview-metrics">
+                <article><span>日前加权均价</span><strong id="overviewDayAvg">--</strong><small>元/MWh</small></article>
+                <article><span>实时加权均价</span><strong id="overviewRealAvg">--</strong><small>元/MWh</small></article>
+                <article><span>实时最高省份</span><strong id="overviewTopValue">--</strong><small id="overviewTopProvince">--</small></article>
+                <article><span>实时最低省份</span><strong id="overviewLowValue">--</strong><small id="overviewLowProvince">--</small></article>
+              </div>
+            </section>
           </div>
-          <p class="map-disclaimer">仅用于示意图之用</p>
         </section>
 
+      <section class="trend-grid" aria-label="全国多月各省曲线">
+        <article class="panel trend-workspace">
+          <div class="panel-head trend-panel-head">
+            <div>
+              <h2 id="nationalTrendTitle">各省实时光伏加权均价走势</h2>
+              <span id="nationalTrendPeriod"></span>
+            </div>
+            <div class="trend-market-switch" role="group" aria-label="趋势市场类型">
+              <button type="button" data-trend-market="日前" aria-pressed="false">日前</button>
+              <button type="button" class="is-active" data-trend-market="实时" aria-pressed="true">实时</button>
+            </div>
+          </div>
+          <div class="trend-workspace-grid">
+            <div class="trend-chart-area">
+              <canvas id="nationalTrendChart" class="line-chart" aria-label="各省光伏加权均价走势"></canvas>
+              <div class="trend-range" aria-label="趋势月份范围">
+                <span id="trendRangeStartLabel">--</span>
+                <div class="trend-range-inputs">
+                  <input id="trendRangeStart" type="range" min="0" max="1" value="0" aria-label="趋势开始月份" />
+                  <input id="trendRangeEnd" type="range" min="0" max="1" value="1" aria-label="趋势结束月份" />
+                </div>
+                <span id="trendRangeEndLabel">--</span>
+              </div>
+            </div>
+            <aside class="province-focus-panel" aria-label="省份筛选">
+              <h3>省份筛选</h3>
+              <input id="nationalTrendSearch" class="legend-search" type="search" placeholder="搜索省份" aria-label="搜索趋势省份" />
+              <div class="legend-actions">
+                <button id="focusAllProvinces" type="button">全选</button>
+                <button id="clearFocusedProvinces" type="button">清除</button>
+                <button id="toggleTrendContext" type="button" aria-pressed="false">仅看所选</button>
+              </div>
+              <div id="nationalTrendSelector" class="focus-province-list"></div>
+            </aside>
+          </div>
+        </article>
+      </section>
+
+      <section class="section-heading-row">
+        <div>
+          <h2>全国省份对比明细</h2>
+          <span>柱状图与明细表按所选周期统计</span>
+        </div>
+      </section>
       <section class="national-grid" aria-label="全国数据看板">
         <article class="panel national-panel">
           <div class="panel-head">
@@ -138,23 +205,6 @@
               <tbody id="nationalRealRows"></tbody>
             </table>
           </div>
-        </article>
-      </section>
-
-      <section class="trend-grid" aria-label="全国多月各省曲线">
-        <article class="panel">
-          <div class="panel-head">
-            <h2>各省日前光伏加权均价走势</h2>
-          </div>
-          <canvas id="nationalDayTrendChart" class="line-chart" aria-label="各省日前光伏加权均价走势"></canvas>
-          <div id="nationalDayLegend" class="interactive-legend" aria-label="日前省份图例"></div>
-        </article>
-        <article class="panel">
-          <div class="panel-head">
-            <h2>各省实时光伏加权均价走势</h2>
-          </div>
-          <canvas id="nationalRealTrendChart" class="line-chart" aria-label="各省实时光伏加权均价走势"></canvas>
-          <div id="nationalRealLegend" class="interactive-legend" aria-label="实时省份图例"></div>
         </article>
       </section>
 
