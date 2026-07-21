@@ -11,6 +11,11 @@
   --blue: #2563eb;
   --brand: #f5223b;
   --table-head: #a8cce8;
+  --chart-grid: #dce3ea;
+  --chart-label: #526171;
+  --chart-text: #1b232c;
+  --chart-context: rgba(130, 149, 168, 0.22);
+  --chart-context-fill: rgba(130, 149, 168, 0.16);
 }
 
 * {
@@ -1225,6 +1230,32 @@ h1 {
   background: #1674d1;
 }
 
+.theme-toggle {
+  align-self: center;
+  width: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0;
+  border-color: rgba(18, 63, 106, 0.24);
+  background: rgba(255, 255, 255, 0.2);
+  color: #123f6a;
+  font-size: 21px;
+  line-height: 1;
+}
+
+.theme-toggle:hover {
+  border-color: rgba(18, 63, 106, 0.48);
+  background: rgba(255, 255, 255, 0.34);
+}
+
+.theme-icon {
+  line-height: 1;
+}
+
+.theme-icon-sun {
+  display: none;
+}
+
 .module-section,
 .province-module {
   margin-top: 10px;
@@ -1842,6 +1873,136 @@ tbody tr:hover td {
   border-color: rgba(255, 255, 255, 0.12);
   box-shadow: 0 10px 28px rgba(15, 23, 42, 0.26);
   white-space: normal;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0c1622;
+  --panel: #142231;
+  --ink: #e7f0f8;
+  --muted: #9eb1c2;
+  --line: #2a3d50;
+  --line-strong: #3a5268;
+  --accent: #43a5e6;
+  --accent-strong: #2588cc;
+  --blue: #65a5ff;
+  --action: #2f80ed;
+  --table-head: #244b69;
+  --chart-grid: #314455;
+  --chart-label: #9fb2c3;
+  --chart-text: #dbe7f1;
+  --chart-context: rgba(145, 165, 184, 0.3);
+  --chart-context-fill: rgba(145, 165, 184, 0.22);
+}
+
+html[data-theme="dark"] .brand-header {
+  border-color: #315d7b;
+  background: linear-gradient(105deg, #173b58 0%, #20577a 54%, #2b6f91 100%);
+  box-shadow: 0 3px 14px rgba(0, 0, 0, 0.28);
+}
+
+html[data-theme="dark"] .brand-header::after {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+html[data-theme="dark"] h1,
+html[data-theme="dark"] .brand-department,
+html[data-theme="dark"] .dashboard-nav a,
+html[data-theme="dark"] .dashboard-nav a:hover,
+html[data-theme="dark"] .dashboard-nav a.is-active {
+  color: #e8f4fc;
+}
+
+html[data-theme="dark"] .theme-toggle {
+  border-color: rgba(220, 239, 252, 0.3);
+  background: rgba(8, 27, 42, 0.34);
+  color: #ffe08a;
+}
+
+html[data-theme="dark"] .theme-icon-moon {
+  display: none;
+}
+
+html[data-theme="dark"] .theme-icon-sun {
+  display: inline;
+}
+
+html[data-theme="dark"] .segmented-control button:not(.is-active) {
+  background: #142231;
+  color: #dbe8f2;
+}
+
+html[data-theme="dark"] .panel,
+html[data-theme="dark"] .filters,
+html[data-theme="dark"] .summary-grid,
+html[data-theme="dark"] .params-tables article,
+html[data-theme="dark"] select,
+html[data-theme="dark"] .legend-search {
+  background-color: var(--panel);
+  color: var(--ink);
+}
+
+html[data-theme="dark"] .map-toolbar,
+html[data-theme="dark"] .bar-axis-navigator,
+html[data-theme="dark"] tbody tr:nth-child(even) td,
+html[data-theme="dark"] .focus-province-item:hover,
+html[data-theme="dark"] .focus-province-item.is-focused {
+  background: #182a3a;
+}
+
+html[data-theme="dark"] .ranking-list li:hover,
+html[data-theme="dark"] .ranking-list li:focus-visible,
+html[data-theme="dark"] .ranking-list li.is-preview,
+html[data-theme="dark"] tbody tr:hover td,
+html[data-theme="dark"] .legend-actions button:hover,
+html[data-theme="dark"] .legend-actions button.is-active {
+  background: #20384d;
+}
+
+html[data-theme="dark"] .ranking-list li.is-selected {
+  background: #1e3c57;
+}
+
+html[data-theme="dark"] .ranking-list li,
+html[data-theme="dark"] .focus-province-item,
+html[data-theme="dark"] th,
+html[data-theme="dark"] td {
+  border-bottom-color: #2a3d50;
+}
+
+html[data-theme="dark"] .overview-metrics strong,
+html[data-theme="dark"] .metric strong,
+html[data-theme="dark"] .bar-axis-navigator output {
+  color: #d8eaff;
+}
+
+html[data-theme="dark"] .params-tables h3 {
+  background: #1c354a;
+  color: #e5f1fa;
+}
+
+html[data-theme="dark"] th {
+  color: #e5f1fa;
+}
+
+html[data-theme="dark"] .trend-range-inputs {
+  border-color: #3b5368;
+  background: #1a3145;
+}
+
+html[data-theme="dark"] .trend-range-inputs input::-webkit-slider-thumb {
+  border-color: #70a7d5;
+  background: #d9e8f3;
+}
+
+html[data-theme="dark"] .page-watermark {
+  border-color: rgba(81, 109, 133, 0.78);
+  background: rgba(18, 34, 49, 0.9);
+}
+
+html[data-theme="dark"] .watermark-values,
+html[data-theme="dark"] .watermark-contact {
+  color: #a9bdce;
 }
 
 @media (max-width: 980px) {

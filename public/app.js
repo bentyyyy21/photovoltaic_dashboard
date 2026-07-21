@@ -13,6 +13,7 @@ const state = {
   heatRange: [0, 100],
   mapScale: null,
   parameterSort: {},
+  theme: document.documentElement.dataset.theme || "light",
 };
 
 if ("scrollRestoration" in history) history.scrollRestoration = "manual";
@@ -112,6 +113,7 @@ const els = {
   overviewLowProvince: document.querySelector("#overviewLowProvince"),
   provinceLabels: document.querySelectorAll("[data-province-label]"),
   navLinks: document.querySelectorAll(".dashboard-nav a"),
+  themeToggle: document.querySelector("#themeToggle"),
 };
 
 const marketOrder = ["日前", "实时"];
@@ -139,6 +141,27 @@ function fmtParameter(value, digits = 4, percent = false) {
     return percent ? `${fmt(value * 100, 1)}%` : fmt(value, digits);
   }
   return escapeHtml(value).replaceAll("\n", "<br>");
+}
+
+function themeColor(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+function applyTheme(theme, persist = true) {
+  state.theme = theme === "dark" ? "dark" : "light";
+  document.documentElement.dataset.theme = state.theme;
+  const nextLabel = state.theme === "dark" ? "切换至日间模式" : "切换至夜间模式";
+  els.themeToggle.setAttribute("aria-label", nextLabel);
+  els.themeToggle.title = nextLabel;
+  els.themeToggle.setAttribute("aria-pressed", String(state.theme === "dark"));
+  if (persist) {
+    try {
+      localStorage.setItem("pv-dashboard-theme", state.theme);
+    } catch (_error) {
+      // Theme still applies when storage is unavailable.
+    }
+  }
+  if (state.data) render();
 }
 
 function setActiveNavigation(targetId) {
@@ -859,7 +882,7 @@ function renderChart(rows) {
   const series = allSeries.filter((item) => !state.hiddenProvinceSeries.has(item.market));
   const values = series.flatMap((item) => item.values).filter((value) => value !== null);
   if (!months.length || !values.length) {
-    ctx.fillStyle = "#657383";
+    ctx.fillStyle = themeColor("--chart-label");
     ctx.font = "14px Microsoft YaHei, Segoe UI, sans-serif";
     ctx.fillText("当前筛选条件没有可绘制数据", 24, 48);
     registerChartHits(canvas, [], width, height);
@@ -879,9 +902,9 @@ function renderChart(rows) {
   const xAt = (index) => pad.left + (months.length === 1 ? chartW / 2 : (chartW * index) / (months.length - 1));
   const yAt = (value) => pad.top + chartH - ((value - yMin) / (yMax - yMin)) * chartH;
 
-  ctx.strokeStyle = "#dce3ea";
+  ctx.strokeStyle = themeColor("--chart-grid");
   ctx.lineWidth = 1;
-  ctx.fillStyle = "#526171";
+  ctx.fillStyle = themeColor("--chart-label");
   ctx.font = `${isMobile ? 12 : 12}px Microsoft YaHei, Segoe UI, sans-serif`;
   ctx.textAlign = "left";
   for (let i = 0; i <= 4; i += 1) {
@@ -984,7 +1007,7 @@ function drawBarChart(canvas, rows, color) {
   const height = canvas.height / dpr;
   ctx.clearRect(0, 0, width, height);
   if (!rows.length) {
-    ctx.fillStyle = "#657383";
+    ctx.fillStyle = themeColor("--chart-label");
     ctx.font = "14px Microsoft YaHei, Segoe UI, sans-serif";
     ctx.fillText("当前周期没有可展示省份", 20, 42);
     registerChartHits(canvas, [], width, height);
@@ -1002,8 +1025,8 @@ function drawBarChart(canvas, rows, color) {
   const chartH = height - pad.top - pad.bottom;
   const gap = isMobile ? 6 : 8;
   const barW = Math.max(14, (chartW - 2 - gap * (topRows.length - 1)) / topRows.length);
-  ctx.strokeStyle = "#dce3ea";
-  ctx.fillStyle = "#526171";
+  ctx.strokeStyle = themeColor("--chart-grid");
+  ctx.fillStyle = themeColor("--chart-label");
   ctx.font = `${isMobile ? "500 13px" : "12px"} Microsoft YaHei, Segoe UI, sans-serif`;
   for (let i = 0; i <= 4; i += 1) {
     const y = pad.top + (chartH * i) / 4;
@@ -1051,7 +1074,7 @@ function drawBarChart(canvas, rows, color) {
         { color: "#cbd5e1", name: "样本点", value: fmt(row.points, 0) },
       ],
     });
-    ctx.fillStyle = "#1b232c";
+    ctx.fillStyle = themeColor("--chart-text");
     ctx.save();
     ctx.translate(x + barW / 2 - 4, height - 18);
     ctx.rotate(-Math.PI / 6);
@@ -1158,7 +1181,7 @@ function drawMultiProvinceTrend(canvas, market) {
 
   const values = drawableSeries.flatMap((item) => item.values).filter((value) => value !== null);
   if (!months.length || !values.length) {
-    ctx.fillStyle = "#657383";
+    ctx.fillStyle = themeColor("--chart-label");
     ctx.font = "14px Microsoft YaHei, Segoe UI, sans-serif";
     ctx.fillText("当前周期没有可绘制数据", 24, 48);
     registerChartHits(canvas, [], width, height);
@@ -1178,9 +1201,9 @@ function drawMultiProvinceTrend(canvas, market) {
   const xAt = (index) => pad.left + (months.length === 1 ? chartW / 2 : (chartW * index) / (months.length - 1));
   const yAt = (value) => pad.top + chartH - ((value - yMin) / (yMax - yMin)) * chartH;
 
-  ctx.strokeStyle = "#dce3ea";
+  ctx.strokeStyle = themeColor("--chart-grid");
   ctx.lineWidth = 1;
-  ctx.fillStyle = "#526171";
+  ctx.fillStyle = themeColor("--chart-label");
   ctx.font = `${isMobile ? 11 : 12}px Microsoft YaHei, Segoe UI, sans-serif`;
   ctx.textAlign = "left";
   for (let i = 0; i <= 4; i += 1) {
@@ -1209,8 +1232,8 @@ function drawMultiProvinceTrend(canvas, market) {
     : [];
 
   const drawSeries = (item, isFocused) => {
-    ctx.strokeStyle = isFocused ? item.focusColor : "rgba(130, 149, 168, 0.22)";
-    ctx.fillStyle = isFocused ? item.focusColor : "rgba(130, 149, 168, 0.16)";
+    ctx.strokeStyle = isFocused ? item.focusColor : themeColor("--chart-context");
+    ctx.fillStyle = isFocused ? item.focusColor : themeColor("--chart-context-fill");
     ctx.lineWidth = isFocused ? 2.4 : 1;
     strokeSmoothValues(ctx, item.values, xAt, yAt);
     if (!isFocused) return;
@@ -1520,6 +1543,7 @@ function exportProvinceRows() {
 }
 
 async function init() {
+  applyTheme(state.theme, false);
   if (window.DASHBOARD_DATA) {
     state.data = window.DASHBOARD_DATA;
   } else {
@@ -1583,6 +1607,7 @@ async function init() {
   [els.trendRangeStart, els.trendRangeEnd].forEach((input) => input.addEventListener("change", applyTrendRange));
   els.exportProvince.addEventListener("click", exportProvinceRows);
   els.exportNational.addEventListener("click", exportNationalRows);
+  els.themeToggle.addEventListener("click", () => applyTheme(state.theme === "dark" ? "light" : "dark"));
   els.priceParams.addEventListener("click", (event) => {
     const button = event.target.closest("[data-parameter-table]");
     if (!button) return;
