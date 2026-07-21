@@ -8,6 +8,8 @@ const state = {
   mapMode: "price",
   mapReady: false,
   mapValues: new Map(),
+  selectedMapProvince: null,
+  mapRankingContext: null,
 };
 
 const NATIONAL_DEFAULT_START = "2025-06";
@@ -142,6 +144,15 @@ function initNavigation() {
   document.querySelectorAll(".dashboard-anchor").forEach((section) => observer.observe(section));
 }
 
+function escapeChartText(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 function registerChartHits(canvas, hits, width, height) {
   chartHits.set(canvas, { hits, width, height });
   if (canvas.dataset.interactive === "true") return;
@@ -150,8 +161,24 @@ function registerChartHits(canvas, hits, width, height) {
   tooltip.className = "chart-tooltip";
   tooltip.hidden = true;
   canvas.parentElement.appendChild(tooltip);
+  const axisLine = document.createElement("div");
+  axisLine.className = "chart-axis-pointer";
+  axisLine.hidden = true;
+  canvas.parentElement.appendChild(axisLine);
+  const hoverDots = document.createElement("div");
+  hoverDots.className = "chart-hover-dots";
+  hoverDots.hidden = true;
+  canvas.parentElement.appendChild(hoverDots);
 
-  canvas.addEventListener("mousemove", (event) => {
+  const hideHover = () => {
+    tooltip.hidden = true;
+    axisLine.hidden = true;
+    hoverDots.hidden = true;
+    hoverDots.innerHTML = "";
+    canvas.style.cursor = "default";
+  };
+
+  canvas.addEventListener("pointermove", (event) => {
     const meta = chartHits.get(canvas);
     if (!meta) return;
     const rect = canvas.getBoundingClientRect();
@@ -163,25 +190,50 @@ function registerChartHits(canvas, hits, width, height) {
       ? x >= item.x1 && x <= item.x2 && y >= item.y1 && y <= item.y2
       : Math.hypot(x - item.x, y - item.y) <= (item.radius || 8));
     if (!hit) {
-      tooltip.hidden = true;
-      canvas.style.cursor = "default";
+      hideHover();
       return;
     }
-    tooltip.textContent = hit.label;
+    if (hit.tooltipRows?.length) {
+      tooltip.innerHTML = `
+        <strong class="chart-tooltip-title">${escapeChartText(hit.tooltipTitle || "")}</strong>
+        <span class="chart-tooltip-list">${hit.tooltipRows.map((row) => `
+          <span class="chart-tooltip-row">
+            <i style="--series-color:${escapeChartText(row.color || "#94a3b8")}"></i>
+            <span>${escapeChartText(row.name)}</span>
+            <b>${escapeChartText(row.value)}</b>
+          </span>`).join("")}</span>`;
+    } else {
+      tooltip.textContent = hit.label;
+    }
     tooltip.hidden = false;
     const parent = canvas.parentElement;
-    const preferredLeft = canvas.offsetLeft + cssX + 12;
-    const preferredTop = canvas.offsetTop + cssY + 12;
+    const axisCssX = hit.axisX === undefined ? cssX : hit.axisX * (rect.width / meta.width);
+    const preferredLeft = axisCssX > rect.width * 0.62
+      ? canvas.offsetLeft + axisCssX - tooltip.offsetWidth - 14
+      : canvas.offsetLeft + axisCssX + 14;
+    const preferredTop = canvas.offsetTop + Math.max(8, Math.min(cssY - tooltip.offsetHeight / 2, rect.height - tooltip.offsetHeight - 8));
     const maxLeft = Math.max(8, parent.clientWidth - tooltip.offsetWidth - 8);
     const maxTop = Math.max(8, parent.clientHeight - tooltip.offsetHeight - 8);
     tooltip.style.left = `${Math.min(Math.max(8, preferredLeft), maxLeft)}px`;
     tooltip.style.top = `${Math.min(Math.max(8, preferredTop), maxTop)}px`;
+
+    if (hit.axisX !== undefined) {
+      const scaleX = rect.width / meta.width;
+      const scaleY = rect.height / meta.height;
+      axisLine.hidden = false;
+      axisLine.style.left = `${canvas.offsetLeft + hit.axisX * scaleX}px`;
+      axisLine.style.top = `${canvas.offsetTop + (hit.axisTop || 0) * scaleY}px`;
+      axisLine.style.height = `${((hit.axisBottom ?? meta.height) - (hit.axisTop || 0)) * scaleY}px`;
+      hoverDots.innerHTML = (hit.points || []).map((point) => `
+        <i style="left:${canvas.offsetLeft + point.x * scaleX}px;top:${canvas.offsetTop + point.y * scaleY}px;--series-color:${escapeChartText(point.color)}"></i>`).join("");
+      hoverDots.hidden = !(hit.points || []).length;
+    } else {
+      axisLine.hidden = true;
+      hoverDots.hidden = true;
+    }
     canvas.style.cursor = "crosshair";
   });
-  canvas.addEventListener("mouseleave", () => {
-    tooltip.hidden = true;
-    canvas.style.cursor = "default";
-  });
+  canvas.addEventListener("pointerleave", hideHover);
 }
 
 function renderToggleLegend(container, items, hiddenSet, onChange) {
@@ -363,10 +415,19 @@ function initializeMapInteraction() {
     path.setAttribute("tabindex", "0");
     path.setAttribute("role", "button");
     path.addEventListener("mousemove", (event) => showMapTooltip(event, province));
-    path.addEventListener("mouseleave", () => { els.mapTooltip.hidden = true; });
+    path.addEventListener("mouseenter", () => previewMapProvince(province, true));
+    path.addEventListener("mouseleave", () => {
+      previewMapProvince(province, false);
+      els.mapTooltip.hidden = true;
+    });
     path.addEventListener("focus", () => showMapTooltip(null, province));
     path.addEventListener("blur", () => { els.mapTooltip.hidden = true; });
-    path.addEventListener("click", (event) => showMapTooltip(event, province));
+    path.addEventListener("click", (event) => selectMapProvince(province, event));
+    path.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      selectMapProvince(province, null);
+    });
   });
 }
 
@@ -394,21 +455,67 @@ function setMapMode(mode) {
   renderHeatmap();
 }
 
+function applyMapSelection() {
+  els.mapHost.querySelectorAll("[data-province]").forEach((path) => {
+    const selected = path.dataset.province === state.selectedMapProvince;
+    path.classList.toggle("is-selected", selected);
+    path.setAttribute("aria-pressed", selected ? "true" : "false");
+  });
+}
+
+function previewMapProvince(province, active) {
+  els.mapHost.querySelectorAll("[data-province]").forEach((path) => {
+    path.classList.toggle("is-preview", active && path.dataset.province === province);
+  });
+  els.overviewRankingRows.querySelectorAll("[data-ranking-province]").forEach((row) => {
+    row.classList.toggle("is-preview", active && row.dataset.rankingProvince === province);
+  });
+}
+
+function selectMapProvince(province, event) {
+  state.selectedMapProvince = province;
+  applyMapSelection();
+  if (state.mapRankingContext) renderOverviewRanking(...state.mapRankingContext);
+  showMapTooltip(event, province);
+}
+
 function renderOverviewRanking(values, metric, unit, digits, period) {
-  const ranked = [...values.entries()]
+  state.mapRankingContext = [values, metric, unit, digits, period];
+  const allRanked = [...values.entries()]
     .filter(([, value]) => Number.isFinite(value))
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5);
+    .sort((a, b) => b[1] - a[1]);
+  const ranked = allRanked.slice(0, 5).map(([province, value], index) => ({ province, value, rank: index + 1 }));
+  const selectedIndex = allRanked.findIndex(([province]) => province === state.selectedMapProvince);
+  if (selectedIndex >= 5) {
+    const [province, value] = allRanked[selectedIndex];
+    ranked.push({ province, value, rank: selectedIndex + 1 });
+  }
+  const maxValue = allRanked[0]?.[1] || 1;
   els.overviewRankingTitle.textContent = `${metric}省份排名`;
   els.overviewRankingPeriod.textContent = period;
-  els.overviewRankingRows.innerHTML = ranked.map(([province, value], index) => `
-    <li>
-      <span class="rank-number">${index + 1}</span>
+  els.overviewRankingRows.innerHTML = ranked.map(({ province, value, rank }) => `
+    <li class="${province === state.selectedMapProvince ? "is-selected" : ""}" data-ranking-province="${escapeHtml(province)}" tabindex="0" role="button" style="--rank-progress:${Math.max(4, (value / maxValue) * 100)}%">
+      <i class="rank-bar" aria-hidden="true"></i>
+      <span class="rank-number">${rank}</span>
       <strong>${escapeHtml(province)}</strong>
       <span>${fmt(value, digits)}</span>
       <small>${escapeHtml(unit)}</small>
     </li>
   `).join("") || `<li class="empty">暂无可排名数据</li>`;
+  els.overviewRankingRows.querySelectorAll("[data-ranking-province]").forEach((row) => {
+    const province = row.dataset.rankingProvince;
+    const activate = () => selectMapProvince(province, null);
+    row.addEventListener("click", activate);
+    row.addEventListener("mouseenter", () => previewMapProvince(province, true));
+    row.addEventListener("mouseleave", () => previewMapProvince(province, false));
+    row.addEventListener("focus", () => previewMapProvince(province, true));
+    row.addEventListener("blur", () => previewMapProvince(province, false));
+    row.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      activate();
+    });
+  });
 }
 
 function renderHeatmap() {
@@ -458,6 +565,7 @@ function renderHeatmap() {
     const title = path.querySelector("title");
     if (title) title.textContent = hasValue ? `${province} · ${fmt(value, digits)} ${unit}` : `${province} · 暂无数据`;
   });
+  applyMapSelection();
 }
 
 function renderSummary(rows) {
@@ -561,7 +669,6 @@ function renderChart(rows) {
     ctx.fillText(month, x - 20, height - 18);
   });
 
-  const hits = [];
   series.forEach((item) => {
     ctx.strokeStyle = item.color;
     ctx.fillStyle = item.color;
@@ -574,14 +681,34 @@ function renderChart(rows) {
       ctx.beginPath();
       ctx.arc(x, y, 4, 0, Math.PI * 2);
       ctx.fill();
-      hits.push({
-        type: "point",
-        x,
-        y,
-        radius: 9,
-        label: `${item.market} · ${months[index]} · ${fmt(value)} 元/MWh`,
-      });
     });
+  });
+  const hits = months.map((month, monthIndex) => {
+    const available = series
+      .map((item) => ({ item, value: item.values[monthIndex] }))
+      .filter(({ value }) => value !== null);
+    const halfStep = months.length > 1 ? chartW / (months.length - 1) / 2 : chartW / 2;
+    return {
+      type: "rect",
+      x1: Math.max(pad.left, xAt(monthIndex) - halfStep),
+      x2: Math.min(width - pad.right, xAt(monthIndex) + halfStep),
+      y1: pad.top,
+      y2: pad.top + chartH,
+      axisX: xAt(monthIndex),
+      axisTop: pad.top,
+      axisBottom: pad.top + chartH,
+      tooltipTitle: month,
+      tooltipRows: available.map(({ item, value }) => ({
+        color: item.color,
+        name: item.market,
+        value: `${fmt(value)} 元/MWh`,
+      })),
+      points: available.map(({ item, value }) => ({
+        x: xAt(monthIndex),
+        y: yAt(value),
+        color: item.color,
+      })),
+    };
   });
   registerChartHits(canvas, hits, width, height);
 }
@@ -652,7 +779,12 @@ function drawBarChart(canvas, rows, color) {
       y1: y,
       x2: x + barW,
       y2: pad.top + chartH,
-      label: `${row.province} · ${fmt(row.weightedAvg)} 元/MWh · ${fmt(row.volume, 0)} 权重`,
+      tooltipTitle: row.province,
+      tooltipRows: [
+        { color: palette[1], name: "加权均价", value: `${fmt(row.weightedAvg)} 元/MWh` },
+        { color: "#94a3b8", name: "权重合计", value: fmt(row.volume, 0) },
+        { color: "#cbd5e1", name: "样本点", value: fmt(row.points, 0) },
+      ],
     });
     ctx.fillStyle = "#1b232c";
     ctx.save();
@@ -818,18 +950,45 @@ function drawMultiProvinceTrend(canvas, market) {
       ctx.arc(x, y, 3.2, 0, Math.PI * 2);
       ctx.fill();
     });
-    const latestIndex = item.values.reduce((found, value, index) => value !== null ? index : found, -1);
-    if (latestIndex >= 0) {
-      ctx.font = "600 11px Microsoft YaHei, Segoe UI, sans-serif";
-      ctx.fillText(item.province, Math.min(width - 48, xAt(latestIndex) + 7), yAt(item.values[latestIndex]) + 4);
-    }
   };
   context.forEach((item) => drawSeries(item, false));
   focused.forEach((item) => drawSeries(item, true));
 
+  const endLabels = focused
+    .map((item) => {
+      const latestIndex = item.values.reduce((found, value, index) => value !== null ? index : found, -1);
+      if (latestIndex < 0) return null;
+      return {
+        item,
+        x: xAt(latestIndex),
+        sourceY: yAt(item.values[latestIndex]),
+        y: yAt(item.values[latestIndex]),
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.y - b.y);
+  const labelGap = 15;
+  endLabels.forEach((label, index) => {
+    if (index > 0) label.y = Math.max(label.y, endLabels[index - 1].y + labelGap);
+  });
+  const overflow = endLabels.length ? endLabels[endLabels.length - 1].y - (pad.top + chartH - 5) : 0;
+  if (overflow > 0) endLabels.forEach((label) => { label.y -= overflow; });
+  ctx.font = "600 11px Microsoft YaHei, Segoe UI, sans-serif";
+  endLabels.forEach((label) => {
+    const textX = Math.min(width - 48, label.x + 9);
+    ctx.strokeStyle = label.item.focusColor;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(label.x + 3, label.sourceY);
+    ctx.lineTo(textX - 2, label.y);
+    ctx.stroke();
+    ctx.fillStyle = label.item.focusColor;
+    ctx.fillText(label.item.province, textX, label.y + 4);
+  });
+
   const hits = months.map((month, monthIndex) => {
     const compared = focused
-      .map((item) => ({ province: item.province, value: item.values[monthIndex] }))
+      .map((item) => ({ province: item.province, value: item.values[monthIndex], color: item.focusColor }))
       .filter((item) => item.value !== null)
       .sort((a, b) => b.value - a.value);
     const halfStep = months.length > 1 ? chartW / (months.length - 1) / 2 : chartW / 2;
@@ -839,7 +998,18 @@ function drawMultiProvinceTrend(canvas, market) {
       x2: Math.min(width - pad.right, xAt(monthIndex) + halfStep),
       y1: pad.top,
       y2: pad.top + chartH,
-      label: `${month}\n${compared.map((item) => `${item.province}  ${fmt(item.value)} 元/MWh`).join("\n") || "未选择重点省份"}`,
+      axisX: xAt(monthIndex),
+      axisTop: pad.top,
+      axisBottom: pad.top + chartH,
+      tooltipTitle: month,
+      tooltipRows: compared.length
+        ? compared.map((item) => ({ color: item.color, name: item.province, value: `${fmt(item.value)} 元/MWh` }))
+        : [{ color: "#94a3b8", name: "提示", value: "未选择重点省份" }],
+      points: compared.map((item) => ({
+        x: xAt(monthIndex),
+        y: yAt(item.value),
+        color: item.color,
+      })),
     };
   });
   registerChartHits(canvas, hits, width, height);
