@@ -82,16 +82,27 @@
               <div class="map-content">
                 <div id="mapStage" class="map-stage">
                   <div id="chinaMapHost" class="china-map-host" aria-live="polite"></div>
+                  <div id="mapRangeLabels" class="map-range-labels" aria-hidden="true"></div>
                   <div id="mapTooltip" class="map-tooltip" hidden></div>
                 </div>
                 <aside class="map-legend" aria-label="热力图图例">
                   <strong id="mapLegendTitle">实时光伏加权均价</strong>
                   <span id="mapLegendUnit">元/MWh</span>
-                  <div class="heat-scale" aria-hidden="true"></div>
-                  <div class="heat-scale-labels">
-                    <span id="mapLegendMin">--</span>
-                    <span id="mapLegendMid">--</span>
-                    <span id="mapLegendMax">--</span>
+                  <div class="heat-visual-map">
+                    <div id="heatScaleTrack" class="heat-scale" tabindex="0" aria-label="热力值范围筛选">
+                      <i id="heatHoverBand" class="heat-hover-band" hidden></i>
+                      <i id="heatRangeSelection" class="heat-range-selection"></i>
+                      <i id="heatValueMarker" class="heat-value-marker" hidden><span></span></i>
+                      <input id="heatRangeMin" type="range" min="0" max="100" value="0" aria-label="热力值筛选下限" />
+                      <input id="heatRangeMax" type="range" min="0" max="100" value="100" aria-label="热力值筛选上限" />
+                      <div id="heatRangeTooltip" class="heat-range-tooltip" hidden></div>
+                    </div>
+                    <div class="heat-scale-labels">
+                      <span id="mapLegendMin">--</span>
+                      <span id="mapLegendMid">--</span>
+                      <span id="mapLegendMax">--</span>
+                    </div>
+                    <div id="heatRangeSummary" class="heat-range-summary">全部省份</div>
                   </div>
                   <div class="map-no-data"><i></i><span>暂无数据</span></div>
                 </aside>

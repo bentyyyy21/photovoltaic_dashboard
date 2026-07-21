@@ -10,6 +10,8 @@ const state = {
   mapValues: new Map(),
   selectedMapProvince: null,
   mapRankingContext: null,
+  heatRange: [0, 100],
+  mapScale: null,
 };
 
 const NATIONAL_DEFAULT_START = "2025-06";
@@ -21,7 +23,10 @@ const MAP_PRICE_ALIASES = {
   冀南: "河北",
   蒙东: "内蒙古",
 };
-const HEAT_COLORS = ["#2e9d68", "#8bcf63", "#f2d34f", "#f59e3d", "#df3f3f"];
+const HEAT_COLORS = [
+  "#313695", "#4575b4", "#74add1", "#abd9e9", "#e0f3f8", "#ffffbf",
+  "#fee090", "#fdae61", "#f46d43", "#d73027", "#a50026",
+];
 const FOCUS_COLORS = ["#1769d2", "#f97316", "#3a9b35", "#8b5cf6", "#0891b2", "#dc3f64"];
 
 const els = {
@@ -74,12 +79,21 @@ const els = {
   mapCapacity: document.querySelector("#mapCapacitySelect"),
   mapStage: document.querySelector("#mapStage"),
   mapHost: document.querySelector("#chinaMapHost"),
+  mapRangeLabels: document.querySelector("#mapRangeLabels"),
   mapTooltip: document.querySelector("#mapTooltip"),
   mapLegendTitle: document.querySelector("#mapLegendTitle"),
   mapLegendUnit: document.querySelector("#mapLegendUnit"),
   mapLegendMin: document.querySelector("#mapLegendMin"),
   mapLegendMid: document.querySelector("#mapLegendMid"),
   mapLegendMax: document.querySelector("#mapLegendMax"),
+  heatScaleTrack: document.querySelector("#heatScaleTrack"),
+  heatHoverBand: document.querySelector("#heatHoverBand"),
+  heatRangeSelection: document.querySelector("#heatRangeSelection"),
+  heatValueMarker: document.querySelector("#heatValueMarker"),
+  heatRangeMin: document.querySelector("#heatRangeMin"),
+  heatRangeMax: document.querySelector("#heatRangeMax"),
+  heatRangeTooltip: document.querySelector("#heatRangeTooltip"),
+  heatRangeSummary: document.querySelector("#heatRangeSummary"),
   overviewRankingTitle: document.querySelector("#overviewRankingTitle"),
   overviewRankingPeriod: document.querySelector("#overviewRankingPeriod"),
   overviewRankingRows: document.querySelector("#overviewRankingRows"),
@@ -381,6 +395,139 @@ function heatColor(value, min, max) {
   return `rgb(${rgb.join(", ")})`;
 }
 
+function heatScaleValue(ratio) {
+  if (!state.mapScale) return 0;
+  return state.mapScale.min + (state.mapScale.max - state.mapScale.min) * Math.max(0, Math.min(1, ratio));
+}
+
+function heatBucketAt(ratio) {
+  const bucketCount = 5;
+  const index = Math.min(bucketCount - 1, Math.floor(Math.max(0, Math.min(0.9999, ratio)) * bucketCount));
+  return {
+    index,
+    startRatio: index / bucketCount,
+    endRatio: (index + 1) / bucketCount,
+  };
+}
+
+function provincesInHeatRange(startRatio, endRatio) {
+  if (!state.mapScale) return [];
+  const low = heatScaleValue(startRatio);
+  const high = heatScaleValue(endRatio);
+  return [...state.mapScale.values.entries()]
+    .filter(([, value]) => Number.isFinite(value) && value >= low && value <= high)
+    .sort((a, b) => b[1] - a[1])
+    .map(([province]) => province);
+}
+
+function renderMapRangeLabels(provinces) {
+  els.mapRangeLabels.innerHTML = "";
+  if (!state.mapReady || !provinces.length) return;
+  const stageRect = els.mapStage.getBoundingClientRect();
+  provinces.forEach((province) => {
+    const paths = [...els.mapHost.querySelectorAll("[data-province]")]
+      .filter((path) => path.dataset.province === province);
+    const path = paths.sort((a, b) => {
+      const aRect = a.getBoundingClientRect();
+      const bRect = b.getBoundingClientRect();
+      return bRect.width * bRect.height - aRect.width * aRect.height;
+    })[0];
+    if (!path) return;
+    const rect = path.getBoundingClientRect();
+    const label = document.createElement("span");
+    label.textContent = province;
+    label.style.left = `${rect.left - stageRect.left + rect.width / 2}px`;
+    label.style.top = `${rect.top - stageRect.top + rect.height / 2}px`;
+    els.mapRangeLabels.appendChild(label);
+  });
+}
+
+function restoreFilteredMapLabels() {
+  const [low, high] = state.heatRange;
+  renderMapRangeLabels(low === 0 && high === 100 ? [] : provincesInHeatRange(low / 100, high / 100));
+}
+
+function updateHeatSelectionDisplay() {
+  if (!state.mapScale) return;
+  const [low, high] = state.heatRange;
+  els.heatRangeSelection.style.left = `${low}%`;
+  els.heatRangeSelection.style.width = `${Math.max(0, high - low)}%`;
+  els.heatRangeMin.value = String(low);
+  els.heatRangeMax.value = String(high);
+  const lowValue = heatScaleValue(low / 100);
+  const highValue = heatScaleValue(high / 100);
+  const count = provincesInHeatRange(low / 100, high / 100).length;
+  els.heatRangeSummary.textContent = low === 0 && high === 100
+    ? `全部省份 · ${count}个`
+    : `${fmt(lowValue, state.mapScale.digits)}–${fmt(highValue, state.mapScale.digits)} ${state.mapScale.unit} · ${count}个省份`;
+}
+
+function showHeatScaleHover(event) {
+  if (!state.mapScale) return;
+  const rect = els.heatScaleTrack.getBoundingClientRect();
+  const ratio = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+  const bucket = heatBucketAt(ratio);
+  const provinces = provincesInHeatRange(bucket.startRatio, bucket.endRatio);
+  const low = heatScaleValue(bucket.startRatio);
+  const high = heatScaleValue(bucket.endRatio);
+  els.heatHoverBand.hidden = false;
+  els.heatHoverBand.style.left = `${bucket.startRatio * 100}%`;
+  els.heatHoverBand.style.width = `${(bucket.endRatio - bucket.startRatio) * 100}%`;
+  els.heatRangeTooltip.innerHTML = `
+    <strong>${fmt(low, state.mapScale.digits)}–${fmt(high, state.mapScale.digits)} ${escapeHtml(state.mapScale.unit)}</strong>
+    <span>${provinces.length ? provinces.map(escapeHtml).join("、") : "该区间暂无省份"}</span>`;
+  els.heatRangeTooltip.hidden = false;
+  const maxLeft = rect.width - els.heatRangeTooltip.offsetWidth;
+  const tooltipLeft = els.heatRangeTooltip.offsetWidth > rect.width
+    ? maxLeft
+    : Math.max(0, Math.min(maxLeft, event.clientX - rect.left - els.heatRangeTooltip.offsetWidth / 2));
+  els.heatRangeTooltip.style.left = `${tooltipLeft}px`;
+  renderMapRangeLabels(provinces);
+}
+
+function hideHeatScaleHover() {
+  els.heatHoverBand.hidden = true;
+  els.heatRangeTooltip.hidden = true;
+  restoreFilteredMapLabels();
+}
+
+function updateHeatValueMarker(province, visible) {
+  const item = state.mapValues.get(province);
+  if (!visible || !item || !state.mapScale) {
+    els.heatValueMarker.hidden = true;
+    return;
+  }
+  const span = state.mapScale.max - state.mapScale.min || 1;
+  const ratio = Math.max(0, Math.min(1, (item.value - state.mapScale.min) / span));
+  const bucket = heatBucketAt(ratio);
+  els.heatValueMarker.style.left = `${ratio * 100}%`;
+  els.heatValueMarker.classList.toggle("is-left", ratio < 0.18);
+  els.heatValueMarker.classList.toggle("is-right", ratio > 0.82);
+  els.heatValueMarker.querySelector("span").innerHTML = `
+    <strong>${escapeHtml(province)} ${fmt(item.value, item.digits)}</strong>
+    <small>${fmt(heatScaleValue(bucket.startRatio), item.digits)}–${fmt(heatScaleValue(bucket.endRatio), item.digits)}</small>`;
+  els.heatValueMarker.hidden = false;
+}
+
+function initHeatLegendInteraction() {
+  els.heatScaleTrack.addEventListener("pointermove", showHeatScaleHover);
+  els.heatScaleTrack.addEventListener("pointerleave", hideHeatScaleHover);
+  const updateRange = (source) => {
+    let low = Number(els.heatRangeMin.value);
+    let high = Number(els.heatRangeMax.value);
+    if (source === "min" && low > high) low = high;
+    if (source === "max" && high < low) high = low;
+    state.heatRange = [low, high];
+    renderHeatmap();
+  };
+  els.heatRangeMin.addEventListener("input", () => updateRange("min"));
+  els.heatRangeMax.addEventListener("input", () => updateRange("max"));
+  els.heatScaleTrack.addEventListener("dblclick", () => {
+    state.heatRange = [0, 100];
+    renderHeatmap();
+  });
+}
+
 function mapTooltipHtml(province) {
   const item = state.mapValues.get(province);
   if (!item) return `<strong>${escapeHtml(province)}</strong><span>暂无数据</span>`;
@@ -445,6 +592,7 @@ async function loadMap() {
 
 function setMapMode(mode) {
   state.mapMode = mode;
+  state.heatRange = [0, 100];
   els.mapModeButtons.forEach((button) => {
     const active = button.dataset.mapMode === mode;
     button.classList.toggle("is-active", active);
@@ -470,6 +618,7 @@ function previewMapProvince(province, active) {
   els.overviewRankingRows.querySelectorAll("[data-ranking-province]").forEach((row) => {
     row.classList.toggle("is-preview", active && row.dataset.rankingProvince === province);
   });
+  updateHeatValueMarker(province, active);
 }
 
 function selectMapProvince(province, event) {
@@ -529,9 +678,16 @@ function renderHeatmap() {
     : `${state.data.capacity?.year || "--"}年装机`;
   const values = isPrice ? mapPriceValues(market) : mapCapacityValues(source);
   const numericValues = [...values.values()].filter((value) => Number.isFinite(value));
-  const min = isPrice ? Math.min(...numericValues) : 0;
-  const max = Math.max(...numericValues);
+  const min = numericValues.length ? (isPrice ? Math.min(...numericValues) : 0) : 0;
+  const max = numericValues.length ? Math.max(...numericValues) : 1;
   const digits = isPrice ? 2 : 0;
+
+  state.mapScale = { values, min, max, digits, unit, metric, period };
+  const [rangeLow, rangeHigh] = state.heatRange;
+  const selectedLow = heatScaleValue(rangeLow / 100);
+  const selectedHigh = heatScaleValue(rangeHigh / 100);
+  const filteredValues = new Map([...values.entries()]
+    .filter(([, value]) => Number.isFinite(value) && value >= selectedLow && value <= selectedHigh));
 
   state.mapValues = new Map([...values.entries()].map(([province, value]) => [province, {
     value,
@@ -547,15 +703,18 @@ function renderHeatmap() {
   els.mapLegendMin.textContent = numericValues.length ? fmt(min, digits) : "--";
   els.mapLegendMid.textContent = numericValues.length ? fmt((min + max) / 2, digits) : "--";
   els.mapLegendMax.textContent = numericValues.length ? fmt(max, digits) : "--";
-  renderOverviewRanking(values, metric, unit, digits, period);
+  renderOverviewRanking(filteredValues, metric, unit, digits, period);
+  updateHeatSelectionDisplay();
 
   if (!state.mapReady) return;
   els.mapHost.querySelectorAll("[data-province]").forEach((path) => {
     const province = path.dataset.province;
     const value = values.get(province);
     const hasValue = Number.isFinite(value);
+    const inSelectedRange = hasValue && value >= selectedLow && value <= selectedHigh;
     path.style.fill = hasValue && numericValues.length ? heatColor(value, min, max) : "#d8e0e7";
     path.classList.toggle("has-no-data", !hasValue);
+    path.classList.toggle("is-out-of-range", hasValue && !inSelectedRange);
     path.setAttribute(
       "aria-label",
       hasValue
@@ -566,6 +725,7 @@ function renderHeatmap() {
     if (title) title.textContent = hasValue ? `${province} · ${fmt(value, digits)} ${unit}` : `${province} · 暂无数据`;
   });
   applyMapSelection();
+  restoreFilteredMapLabels();
 }
 
 function renderSummary(rows) {
@@ -1263,6 +1423,7 @@ async function init() {
   } catch (error) {
     els.mapHost.textContent = `地图加载失败：${error.message}`;
   }
+  initHeatLegendInteraction();
   render();
   els.province.addEventListener("change", () => {
     updateProvinceMonths(false);
@@ -1272,8 +1433,10 @@ async function init() {
   [els.provinceStart, els.provinceEnd].forEach((el) => el.addEventListener("change", renderProvince));
   [els.nationalStart, els.nationalEnd].forEach((el) => el.addEventListener("change", renderNationalModule));
   els.mapModeButtons.forEach((button) => button.addEventListener("click", () => setMapMode(button.dataset.mapMode)));
-  els.mapMarket.addEventListener("change", renderHeatmap);
-  els.mapCapacity.addEventListener("change", renderHeatmap);
+  [els.mapMarket, els.mapCapacity].forEach((control) => control.addEventListener("change", () => {
+    state.heatRange = [0, 100];
+    renderHeatmap();
+  }));
   els.trendMarketButtons.forEach((button) => button.addEventListener("click", () => {
     state.nationalTrendMarket = button.dataset.trendMarket;
     renderNationalTrend();
