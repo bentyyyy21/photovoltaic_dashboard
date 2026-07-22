@@ -28,6 +28,9 @@ const MAP_PRICE_ALIASES = {
   冀南: "河北",
   蒙东: "内蒙古",
 };
+const MAP_SETTLEMENT_ALIASES = {
+  内蒙古: ["蒙东"],
+};
 const HEAT_COLORS = [
   "#313695", "#4575b4", "#74add1", "#abd9e9", "#e0f3f8", "#ffffbf",
   "#fee090", "#fdae61", "#f46d43", "#d73027", "#a50026",
@@ -562,6 +565,41 @@ function updateHeatValueMarker(province, visible) {
   els.heatValueMarker.hidden = false;
 }
 
+function normalizeSettlementProvince(value) {
+  return String(value || "")
+    .split("-")[0]
+    .replace(/(?:维吾尔族自治区|壮族自治区|回族自治区|特别行政区|自治区|电网|南网|省|市)$/u, "");
+}
+
+function settlementReferenceForProvince(province) {
+  const table = state.data.parameterTables?.settlement;
+  if (!table) return null;
+  const candidates = (MAP_SETTLEMENT_ALIASES[province] || [province]).map(normalizeSettlementProvince);
+  const row = table.rows.find((values) => candidates.includes(normalizeSettlementProvince(values[1])));
+  if (!row) return null;
+  const start = els.nationalStart.value;
+  const end = els.nationalEnd.value;
+  const monthIndexes = table.headers
+    .map((header, index) => ({ month: String(header), index }))
+    .filter(({ month, index }) => index >= 2 && /^20\d{2}-\d{2}$/.test(month) && month >= start && month <= end)
+    .sort((a, b) => b.month.localeCompare(a.month));
+  for (const { month, index } of monthIndexes) {
+    const value = row[index];
+    if (value !== null && value !== undefined && value !== "") return { month, value };
+  }
+  return null;
+}
+
+function settlementReferenceHtml(province) {
+  if (state.mapMode !== "price") return "";
+  const reference = settlementReferenceForProvince(province);
+  if (!reference) return "<span>结算单参考价：暂无数据</span>";
+  const value = typeof reference.value === "number"
+    ? `${fmt(reference.value, 5)} 元/kWh`
+    : escapeHtml(reference.value);
+  return `<span>结算单参考价（${escapeHtml(reference.month)}）：${value}</span>`;
+}
+
 function initHeatLegendInteraction() {
   els.heatScaleTrack.addEventListener("pointermove", showHeatScaleHover);
   els.heatScaleTrack.addEventListener("pointerleave", hideHeatScaleHover);
@@ -583,11 +621,11 @@ function initHeatLegendInteraction() {
 
 function mapTooltipHtml(province) {
   const item = state.mapValues.get(province);
-  if (!item) return `<strong>${escapeHtml(province)}</strong><span>暂无数据</span>`;
+  if (!item) return `<strong>${escapeHtml(province)}</strong><span>暂无现货数据</span>${settlementReferenceHtml(province)}`;
   return `
     <strong>${escapeHtml(province)}</strong>
     <span>${escapeHtml(item.metric)}：${fmt(item.value, item.digits)} ${escapeHtml(item.unit)}</span>
-    <span>${escapeHtml(item.period)}</span>
+    ${settlementReferenceHtml(province)}
   `;
 }
 

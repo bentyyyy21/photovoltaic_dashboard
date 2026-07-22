@@ -56,6 +56,7 @@
 8. Verified fresh-link default positioning with a stale province hash while preserving normal in-page navigation.
 9. Rebuilt the national parameter module from the three named workbook sheets, arranged the two reference-price tables above the full-width mechanism table, and verified independent ascending/descending sorting. Equal-width parameter columns and table-contained mobile scrolling were confirmed at 1440px and 390px.
 10. Added a persistent day/night theme control and verified dark surfaces, table headers, controls, map, canvas chart grids/labels, fixed watermark, reload persistence, and a 390px overflow-free mobile viewport.
+11. Simplified province map tooltips by removing the repeated period and adding the latest maintained settlement reference price within the selected range. Verified province-name normalization, numeric and text references, and the Guangdong fallback from empty June data to May 2026.
 
 **Implementation Checklist**
 
@@ -79,5 +80,6 @@
 - [x] Equal-width parameter table columns
 - [x] Persistent day/night theme switching
 - [x] Theme-aware canvas chart rendering
+- [x] Map tooltip settlement reference prices
 
 final result: passed
