@@ -279,7 +279,7 @@ button:hover {
 
 #exportNational,
 #exportProvince,
-.segmented-control button[data-map-mode="price"].is-active {
+.segmented-control button.is-active {
   border-color: #e3132f;
   background: var(--brand);
   color: #fff;
@@ -287,7 +287,7 @@ button:hover {
 
 #exportNational:hover,
 #exportProvince:hover,
-.segmented-control button[data-map-mode="price"].is-active:hover {
+.segmented-control button.is-active:hover {
   border-color: #c70e28;
   background: #dc1833;
 }
@@ -1357,7 +1357,6 @@ button.primary:hover {
   min-height: 34px;
 }
 
-.segmented-control button.is-active,
 .trend-market-switch button.is-active {
   background: var(--action);
 }
