@@ -574,26 +574,21 @@ function normalizeSettlementProvince(value) {
 function settlementReferenceForProvince(province) {
   const table = state.data.parameterTables?.settlement;
   if (!table) return null;
+  const month = els.nationalStart.value;
+  if (!month || month !== els.nationalEnd.value) return null;
   const candidates = (MAP_SETTLEMENT_ALIASES[province] || [province]).map(normalizeSettlementProvince);
   const row = table.rows.find((values) => candidates.includes(normalizeSettlementProvince(values[1])));
   if (!row) return null;
-  const start = els.nationalStart.value;
-  const end = els.nationalEnd.value;
-  const monthIndexes = table.headers
-    .map((header, index) => ({ month: String(header), index }))
-    .filter(({ month, index }) => index >= 2 && /^20\d{2}-\d{2}$/.test(month) && month >= start && month <= end)
-    .sort((a, b) => b.month.localeCompare(a.month));
-  for (const { month, index } of monthIndexes) {
-    const value = row[index];
-    if (value !== null && value !== undefined && value !== "") return { month, value };
-  }
-  return null;
+  const index = table.headers.findIndex((header) => String(header) === month);
+  if (index < 2) return null;
+  const value = row[index];
+  return value !== null && value !== undefined && value !== "" ? { month, value } : null;
 }
 
 function settlementReferenceHtml(province) {
   if (state.mapMode !== "price") return "";
   const reference = settlementReferenceForProvince(province);
-  if (!reference) return "<span>结算单参考价：暂无数据</span>";
+  if (!reference) return "";
   const value = typeof reference.value === "number"
     ? `${fmt(reference.value, 5)} 元/kWh`
     : escapeHtml(reference.value);
