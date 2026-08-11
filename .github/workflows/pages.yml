@@ -27,7 +27,7 @@ jobs:
       - name: Prepare static site
         run: |
           mkdir -p _site
-          cp index.html dashboard-v2.html .nojekyll _site/
+          cp index.html dashboard-v1.html dashboard-v2.html .nojekyll _site/
           cp -R public _site/public
           if find _site -type f \( -iname '*.xlsx' -o -iname '*.xls' \) | grep -q .; then
             echo "Excel files must not be included in the Pages artifact."
