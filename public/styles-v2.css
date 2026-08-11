@@ -1,0 +1,330 @@
+:root {
+  --v2-bg: #f3f7fb;
+  --v2-surface: #ffffff;
+  --v2-line: #dce6ef;
+  --v2-text: #0b2948;
+  --v2-muted: #65788d;
+  --v2-accent: #f5223b;
+  --v2-blue: #1479c9;
+  --v2-shadow: 0 8px 24px rgba(20, 59, 94, 0.07);
+}
+
+html[data-theme="dark"] {
+  --v2-bg: #091827;
+  --v2-surface: #102438;
+  --v2-line: #294259;
+  --v2-text: #edf7ff;
+  --v2-muted: #9db1c3;
+  --v2-shadow: 0 10px 28px rgba(0, 0, 0, 0.24);
+}
+
+body.dashboard-v2 {
+  background: var(--v2-bg);
+  color: var(--v2-text);
+}
+
+.dashboard-v2 .shell {
+  width: min(1600px, calc(100% - 32px));
+  margin: 18px auto 72px;
+}
+
+.dashboard-v2 .brand-header {
+  position: sticky;
+  top: 10px;
+  z-index: 50;
+  display: grid;
+  grid-template-columns: minmax(360px, 1fr) auto;
+  min-height: 78px;
+  padding: 12px 20px;
+  border: 1px solid rgba(62, 151, 205, 0.34);
+  border-radius: 6px;
+  background: linear-gradient(108deg, rgba(137, 216, 250, 0.96), rgba(224, 245, 255, 0.97) 58%, rgba(255, 255, 255, 0.98));
+  box-shadow: 0 9px 28px rgba(37, 105, 148, 0.12);
+  backdrop-filter: blur(16px);
+}
+
+html[data-theme="dark"] .dashboard-v2 .brand-header {
+  background: linear-gradient(108deg, rgba(17, 74, 111, 0.98), rgba(15, 45, 69, 0.98) 60%, rgba(16, 36, 56, 0.98));
+}
+
+.dashboard-v2 .brand-identity {
+  gap: 14px;
+}
+
+.dashboard-v2 .header-logo {
+  width: 54px;
+  height: 54px;
+  border-radius: 6px;
+  box-shadow: 0 6px 14px rgba(245, 34, 59, 0.18);
+}
+
+.dashboard-v2 .brand-title {
+  gap: 14px;
+}
+
+.dashboard-v2 .brand-name {
+  font-size: 22px;
+}
+
+.dashboard-v2 .brand-title h1 {
+  font-size: 22px;
+}
+
+.dashboard-v2 .brand-department {
+  margin-top: 4px;
+  color: #315a78;
+}
+
+html[data-theme="dark"] .dashboard-v2 .brand-department {
+  color: #b7cedd;
+}
+
+.dashboard-v2 .dashboard-nav {
+  align-self: stretch;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid rgba(34, 116, 171, 0.16);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.46);
+}
+
+.dashboard-v2 .dashboard-nav a {
+  display: grid;
+  place-items: center;
+  min-width: 112px;
+  padding: 0 18px;
+  border-radius: 4px;
+  color: #21435f;
+}
+
+.dashboard-v2 .dashboard-nav a::after {
+  display: none;
+}
+
+.dashboard-v2 .dashboard-nav a:hover {
+  color: #0e5f9d;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.dashboard-v2 .dashboard-nav a.is-active {
+  color: #fff;
+  background: var(--v2-accent);
+  box-shadow: 0 5px 12px rgba(245, 34, 59, 0.2);
+}
+
+html[data-theme="dark"] .dashboard-v2 .dashboard-nav {
+  background: rgba(5, 23, 38, 0.4);
+}
+
+html[data-theme="dark"] .dashboard-v2 .dashboard-nav a {
+  color: #c9dce9;
+}
+
+html[data-theme="dark"] .dashboard-v2 .dashboard-nav a.is-active {
+  color: #fff;
+}
+
+.dashboard-v2 .theme-toggle {
+  margin-left: 2px;
+}
+
+.dashboard-v2 #nationalModule,
+.dashboard-v2 #provinceModule,
+.dashboard-v2 #priceParams {
+  display: none;
+}
+
+.dashboard-v2[data-active-view="nationalModule"] #nationalModule,
+.dashboard-v2[data-active-view="provinceModule"] #provinceModule,
+.dashboard-v2[data-active-view="priceParams"] #nationalModule,
+.dashboard-v2[data-active-view="priceParams"] #priceParams {
+  display: block;
+}
+
+.dashboard-v2[data-active-view="nationalModule"] #priceParams {
+  display: none;
+}
+
+.dashboard-v2[data-active-view="priceParams"] #nationalModule > :not(#priceParams) {
+  display: none !important;
+}
+
+.dashboard-v2 .module-section,
+.dashboard-v2 #priceParams {
+  margin-top: 18px;
+  animation: v2-view-in 180ms ease-out;
+}
+
+@keyframes v2-view-in {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dashboard-v2 .module-title,
+.dashboard-v2 .section-heading-row {
+  margin: 0;
+  padding: 2px 2px 10px;
+  border: 0;
+  background: transparent;
+}
+
+.dashboard-v2 .module-title h2,
+.dashboard-v2 .section-heading-row h2 {
+  color: var(--v2-text);
+  font-size: 20px;
+}
+
+.dashboard-v2 .filters {
+  position: sticky;
+  top: 112px;
+  z-index: 35;
+  margin-bottom: 14px;
+  border: 1px solid var(--v2-line);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--v2-surface) 94%, transparent);
+  box-shadow: var(--v2-shadow);
+  backdrop-filter: blur(12px);
+}
+
+.dashboard-v2 .panel,
+.dashboard-v2 .metric,
+.dashboard-v2 .params-card {
+  border-color: var(--v2-line);
+  border-radius: 6px;
+  background: var(--v2-surface);
+  box-shadow: var(--v2-shadow);
+}
+
+.dashboard-v2 .panel-head {
+  border-color: var(--v2-line);
+}
+
+.dashboard-v2 .overview-panel {
+  min-height: 500px;
+}
+
+.dashboard-v2 .overview-content {
+  grid-template-columns: minmax(620px, 1.7fr) minmax(300px, 0.7fr);
+}
+
+.dashboard-v2 .trend-workspace-grid {
+  grid-template-columns: minmax(0, 1fr) 240px;
+}
+
+.dashboard-v2 .line-chart {
+  min-height: 390px;
+}
+
+.dashboard-v2 .params-panel {
+  padding: 0;
+  overflow: hidden;
+}
+
+.dashboard-v2 .params-panel > .panel-head {
+  min-height: 62px;
+  padding: 0 22px;
+  background: linear-gradient(90deg, rgba(20, 121, 201, 0.08), transparent 55%);
+}
+
+.dashboard-v2 .params-tables {
+  padding: 18px;
+}
+
+.dashboard-v2 .params-card h3 {
+  min-height: 46px;
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--v2-line);
+}
+
+.dashboard-v2 .primary,
+.dashboard-v2 .segmented-control button.is-active,
+.dashboard-v2 .trend-market-switch button.is-active {
+  background: var(--v2-accent);
+  border-color: var(--v2-accent);
+}
+
+.dashboard-v2 table tbody tr:hover td {
+  background: rgba(20, 121, 201, 0.06);
+}
+
+@media (max-width: 900px) {
+  .dashboard-v2 .shell {
+    width: min(100% - 16px, 760px);
+    margin-top: 8px;
+  }
+
+  .dashboard-v2 .brand-header {
+    position: relative;
+    top: 0;
+    grid-template-columns: 1fr;
+    padding: 14px 12px 0;
+  }
+
+  .dashboard-v2 .dashboard-nav {
+    width: calc(100% + 24px);
+    margin: 12px -12px 0;
+    border-width: 1px 0 0;
+    border-radius: 0;
+  }
+
+  .dashboard-v2 .dashboard-nav a {
+    min-width: 0;
+    padding: 14px 8px;
+  }
+
+  .dashboard-v2 .filters {
+    position: relative;
+    top: 0;
+  }
+
+  .dashboard-v2 .overview-content,
+  .dashboard-v2 .trend-workspace-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-v2 .province-focus-panel {
+    max-height: 320px;
+  }
+}
+
+@media (max-width: 560px) {
+  .dashboard-v2 .shell {
+    width: calc(100% - 12px);
+  }
+
+  .dashboard-v2 .header-logo {
+    width: 48px;
+    height: 48px;
+  }
+
+  .dashboard-v2 .brand-name,
+  .dashboard-v2 .brand-title h1 {
+    font-size: 18px;
+  }
+
+  .dashboard-v2 .brand-title {
+    display: block;
+  }
+
+  .dashboard-v2 .brand-name {
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .dashboard-v2 .dashboard-nav a {
+    font-size: 15px;
+  }
+
+  .dashboard-v2 .theme-toggle {
+    width: 42px;
+  }
+
+  .dashboard-v2 .module-title h2,
+  .dashboard-v2 .section-heading-row h2 {
+    font-size: 18px;
+  }
+
+  .dashboard-v2 .overview-panel {
+    min-height: 0;
+  }
+}
