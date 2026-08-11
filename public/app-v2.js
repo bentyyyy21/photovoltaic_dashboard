@@ -187,8 +187,10 @@ function activateDashboardView(targetId, updateHash = true) {
 
 function focusDefaultNationalMap() {
   if (document.body.classList.contains("dashboard-v2")) {
-    const requestedView = window.location.hash.slice(1);
-    activateDashboardView(requestedView || "nationalModule", false);
+    if (window.location.hash) {
+      history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+    }
+    activateDashboardView("nationalModule", false);
     return;
   }
   if (window.location.hash) {
@@ -1613,6 +1615,9 @@ async function init() {
   els.stamp.textContent = "";
   els.stamp.hidden = true;
   fillSelect(els.province, state.data.provinces.map((p) => p.name));
+  if (document.body.classList.contains("dashboard-v2") && [...els.province.options].some((option) => option.value === "广东")) {
+    els.province.value = "广东";
+  }
   if (state.data.capacity?.types?.length) {
     fillSelect(els.mapCapacity, state.data.capacity.types);
     els.mapCapacity.value = state.data.capacity.types.includes("光伏") ? "光伏" : state.data.capacity.types[0];
