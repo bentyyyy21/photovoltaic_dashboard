@@ -1289,7 +1289,16 @@ h1 {
 }
 
 .national-filters {
-  grid-template-columns: repeat(2, minmax(170px, 220px)) minmax(230px, 1fr);
+  grid-template-columns: repeat(2, minmax(170px, 220px)) minmax(150px, 180px) minmax(220px, auto);
+}
+
+.national-filters .filter-action {
+  justify-content: flex-start;
+}
+
+.national-filters .filter-action button {
+  min-width: 0;
+  white-space: nowrap;
 }
 
 .province-filters {
