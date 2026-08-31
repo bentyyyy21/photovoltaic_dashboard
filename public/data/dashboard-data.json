@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-31T10:49:24",
+  "generatedAt": "2026-08-31T12:31:20",
   "provinces": [
     {
       "name": "云南",
@@ -548,7 +548,7 @@
       "weightedAvg": 179.5504505079621,
       "volume": 4011749.651657563,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "云南",
@@ -557,7 +557,7 @@
       "weightedAvg": 219.0596590596222,
       "volume": 4011749.651657563,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "云南",
@@ -566,7 +566,7 @@
       "weightedAvg": 136.56039990197448,
       "volume": 13747684.829999993,
       "points": 2880,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "云南",
@@ -575,7 +575,7 @@
       "weightedAvg": 130.49478162441542,
       "volume": 13747684.829999993,
       "points": 2880,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "云南",
@@ -584,7 +584,7 @@
       "weightedAvg": 59.6901799147957,
       "volume": 15503766.729999967,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "云南",
@@ -593,7 +593,7 @@
       "weightedAvg": 62.04261251090945,
       "volume": 15503766.729999967,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "云南",
@@ -602,7 +602,7 @@
       "weightedAvg": 36.539861042236694,
       "volume": 16264516.300000003,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "云南",
@@ -611,7 +611,7 @@
       "weightedAvg": 47.96927364295985,
       "volume": 16264516.300000003,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "云南",
@@ -620,7 +620,7 @@
       "weightedAvg": 24.29048856268114,
       "volume": 16781848.27000001,
       "points": 2880,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "云南",
@@ -629,7 +629,7 @@
       "weightedAvg": 19.64301015319867,
       "volume": 16781848.27000001,
       "points": 2880,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "云南",
@@ -638,7 +638,7 @@
       "weightedAvg": 114.48117229902861,
       "volume": 17477292.91000005,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "云南",
@@ -647,7 +647,7 @@
       "weightedAvg": 91.10437928876158,
       "volume": 17477292.91000005,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "云南",
@@ -656,7 +656,7 @@
       "weightedAvg": 88.9361169769797,
       "volume": 16053969.489999985,
       "points": 2880,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "云南",
@@ -665,7 +665,7 @@
       "weightedAvg": 64.52638923211612,
       "volume": 16053969.489999985,
       "points": 2880,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "云南",
@@ -674,7 +674,7 @@
       "weightedAvg": 158.9376558202503,
       "volume": 19461555.510000024,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "云南",
@@ -683,7 +683,7 @@
       "weightedAvg": 123.88181213808514,
       "volume": 19461555.510000024,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "云南",
@@ -3158,7 +3158,7 @@
       "weightedAvg": 243.91606694795695,
       "volume": 1251959.0416575673,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "广西",
@@ -3167,7 +3167,7 @@
       "weightedAvg": 235.40467662369468,
       "volume": 1251959.0416575673,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "广西",
@@ -3176,7 +3176,7 @@
       "weightedAvg": 185.81179637015603,
       "volume": 4584896.140000004,
       "points": 2880,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "广西",
@@ -3185,7 +3185,7 @@
       "weightedAvg": 201.0388483193297,
       "volume": 4584896.140000004,
       "points": 2880,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "广西",
@@ -3194,7 +3194,7 @@
       "weightedAvg": 71.46633059816035,
       "volume": 4952721.549999979,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "广西",
@@ -3203,7 +3203,7 @@
       "weightedAvg": 117.08001083346791,
       "volume": 4952721.549999979,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "广西",
@@ -3212,7 +3212,7 @@
       "weightedAvg": 72.52897873386821,
       "volume": 4870796.419999997,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "广西",
@@ -3221,7 +3221,7 @@
       "weightedAvg": 86.0974054789103,
       "volume": 4870796.419999997,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "广西",
@@ -3230,7 +3230,7 @@
       "weightedAvg": 109.4856496645958,
       "volume": 5059381.360000003,
       "points": 2880,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "广西",
@@ -3239,7 +3239,7 @@
       "weightedAvg": 121.52069798651898,
       "volume": 5059381.360000003,
       "points": 2880,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "广西",
@@ -3248,7 +3248,7 @@
       "weightedAvg": 79.13988766877225,
       "volume": 5189760.610000006,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "广西",
@@ -3257,7 +3257,7 @@
       "weightedAvg": 52.686356873686165,
       "volume": 5189760.610000006,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "广西",
@@ -3266,7 +3266,7 @@
       "weightedAvg": 50.78899603214929,
       "volume": 4253322.419999994,
       "points": 2880,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "广西",
@@ -3275,7 +3275,7 @@
       "weightedAvg": 57.82235249462302,
       "volume": 4253322.419999994,
       "points": 2880,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "广西",
@@ -3284,7 +3284,7 @@
       "weightedAvg": 175.0067631897685,
       "volume": 3818807.350000002,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "广西",
@@ -3293,7 +3293,7 @@
       "weightedAvg": 183.02996327813403,
       "volume": 3818807.350000002,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "广西",
@@ -3842,7 +3842,7 @@
       "weightedAvg": 782.3397506886172,
       "volume": 944030.3616575677,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "海南",
@@ -3851,7 +3851,7 @@
       "weightedAvg": 302.58900545532,
       "volume": 944030.3616575677,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "海南",
@@ -3860,7 +3860,7 @@
       "weightedAvg": 416.9247600304289,
       "volume": 2711167.3099999973,
       "points": 2880,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "海南",
@@ -3869,7 +3869,7 @@
       "weightedAvg": 231.68840723519241,
       "volume": 2711167.3099999973,
       "points": 2880,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "海南",
@@ -3878,7 +3878,7 @@
       "weightedAvg": 234.0032535862606,
       "volume": 2705744.1900000013,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "海南",
@@ -3887,7 +3887,7 @@
       "weightedAvg": 251.58237990813396,
       "volume": 2705744.1900000013,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "海南",
@@ -3896,7 +3896,7 @@
       "weightedAvg": 191.89387497472188,
       "volume": 2983364.1300000045,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "海南",
@@ -3905,7 +3905,7 @@
       "weightedAvg": 235.769050105561,
       "volume": 2983364.1300000045,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "海南",
@@ -3914,7 +3914,7 @@
       "weightedAvg": 191.27419843712903,
       "volume": 2831467.409999996,
       "points": 2880,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "海南",
@@ -3923,7 +3923,7 @@
       "weightedAvg": 202.94279073447095,
       "volume": 2831467.409999996,
       "points": 2880,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "海南",
@@ -3932,7 +3932,7 @@
       "weightedAvg": 169.21698543496146,
       "volume": 2277185.2599999933,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "海南",
@@ -3941,7 +3941,7 @@
       "weightedAvg": 202.24129222634858,
       "volume": 2277185.2599999933,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "海南",
@@ -3950,7 +3950,7 @@
       "weightedAvg": 111.3617184629511,
       "volume": 1947805.5399999965,
       "points": 2880,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "海南",
@@ -3959,7 +3959,7 @@
       "weightedAvg": 166.3160436347936,
       "volume": 1947805.5399999965,
       "points": 2880,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "海南",
@@ -3968,7 +3968,7 @@
       "weightedAvg": 123.19988371178603,
       "volume": 1956639.130000001,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "海南",
@@ -3977,7 +3977,7 @@
       "weightedAvg": 190.81005536359783,
       "volume": 1956639.130000001,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "海南",
@@ -4118,9 +4118,9 @@
       "province": "湖北",
       "month": "2024-05",
       "market": "实时",
-      "weightedAvg": 143.4857731806527,
-      "volume": 253947.11999999997,
-      "points": 120,
+      "weightedAvg": 154.31690312249088,
+      "volume": 390560.6200000002,
+      "points": 144,
       "volumeCurve": "光伏边界数据"
     },
     {
@@ -4280,9 +4280,9 @@
       "province": "湖北",
       "month": "2025-02",
       "market": "实时",
-      "weightedAvg": 223.1456522330476,
-      "volume": 1340787.0900000003,
-      "points": 648,
+      "weightedAvg": 228.03390154483162,
+      "volume": 1430670.4500000002,
+      "points": 672,
       "volumeCurve": "光伏边界数据"
     },
     {
@@ -4325,18 +4325,18 @@
       "province": "湖北",
       "month": "2025-04",
       "market": "日前",
-      "weightedAvg": 139.3538054536299,
-      "volume": 4253448.569999996,
-      "points": 696,
+      "weightedAvg": 138.65781168952043,
+      "volume": 4354331.429999995,
+      "points": 720,
       "volumeCurve": "光伏边界数据"
     },
     {
       "province": "湖北",
       "month": "2025-05",
       "market": "实时",
-      "weightedAvg": 131.2618326233588,
-      "volume": 923277.2200000002,
-      "points": 336,
+      "weightedAvg": 199.87718521240032,
+      "volume": 3543952.019999999,
+      "points": 744,
       "volumeCurve": "光伏边界数据"
     },
     {
@@ -4351,10 +4351,28 @@
     {
       "province": "湖北",
       "month": "2025-06",
+      "market": "实时",
+      "weightedAvg": 170.66656977872412,
+      "volume": 4073448.7300000014,
+      "points": 720,
+      "volumeCurve": "光伏边界数据"
+    },
+    {
+      "province": "湖北",
+      "month": "2025-06",
       "market": "日前",
       "weightedAvg": 134.20402883163325,
       "volume": 4073448.7300000014,
       "points": 720,
+      "volumeCurve": "光伏边界数据"
+    },
+    {
+      "province": "湖北",
+      "month": "2025-07",
+      "market": "实时",
+      "weightedAvg": 184.26913628979577,
+      "volume": 6200743.46,
+      "points": 744,
       "volumeCurve": "光伏边界数据"
     },
     {
@@ -4369,10 +4387,28 @@
     {
       "province": "湖北",
       "month": "2025-08",
+      "market": "实时",
+      "weightedAvg": 136.30505504135397,
+      "volume": 5436195.31,
+      "points": 720,
+      "volumeCurve": "光伏边界数据"
+    },
+    {
+      "province": "湖北",
+      "month": "2025-08",
       "market": "日前",
       "weightedAvg": 139.54903292085254,
       "volume": 5549841.099999999,
       "points": 744,
+      "volumeCurve": "光伏边界数据"
+    },
+    {
+      "province": "湖北",
+      "month": "2025-09",
+      "market": "实时",
+      "weightedAvg": 169.34548810331415,
+      "volume": 3311746.309999999,
+      "points": 720,
       "volumeCurve": "光伏边界数据"
     },
     {
@@ -4387,6 +4423,15 @@
     {
       "province": "湖北",
       "month": "2025-10",
+      "market": "实时",
+      "weightedAvg": 105.79660933760798,
+      "volume": 3063055.1200000006,
+      "points": 744,
+      "volumeCurve": "光伏边界数据"
+    },
+    {
+      "province": "湖北",
+      "month": "2025-10",
       "market": "日前",
       "weightedAvg": 80.09900321712132,
       "volume": 3063055.1200000006,
@@ -4396,10 +4441,28 @@
     {
       "province": "湖北",
       "month": "2025-11",
+      "market": "实时",
+      "weightedAvg": 98.0743777418431,
+      "volume": 3182295.8500000024,
+      "points": 720,
+      "volumeCurve": "光伏边界数据"
+    },
+    {
+      "province": "湖北",
+      "month": "2025-11",
       "market": "日前",
       "weightedAvg": 97.491279053203,
       "volume": 3182295.8500000024,
       "points": 720,
+      "volumeCurve": "光伏边界数据"
+    },
+    {
+      "province": "湖北",
+      "month": "2025-12",
+      "market": "实时",
+      "weightedAvg": 109.91819433510601,
+      "volume": 849528.3399999999,
+      "points": 192,
       "volumeCurve": "光伏边界数据"
     },
     {
@@ -5840,7 +5903,7 @@
       "weightedAvg": 240.1836725880568,
       "volume": 1899238.12165757,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "贵州",
@@ -5849,7 +5912,7 @@
       "weightedAvg": 274.2247018422236,
       "volume": 1899238.12165757,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "贵州",
@@ -5858,7 +5921,7 @@
       "weightedAvg": 372.9109173572668,
       "volume": 6777816.920000006,
       "points": 2880,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "贵州",
@@ -5867,7 +5930,7 @@
       "weightedAvg": 299.48884935136226,
       "volume": 6777816.920000006,
       "points": 2880,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "贵州",
@@ -5876,7 +5939,7 @@
       "weightedAvg": 187.99714233010812,
       "volume": 9139203.150000006,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "贵州",
@@ -5885,7 +5948,7 @@
       "weightedAvg": 259.8433965341575,
       "volume": 9139203.150000006,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "贵州",
@@ -5894,7 +5957,7 @@
       "weightedAvg": 211.993843524718,
       "volume": 10143785.629999993,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "贵州",
@@ -5903,7 +5966,7 @@
       "weightedAvg": 276.3706371840875,
       "volume": 10143785.629999993,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "贵州",
@@ -5912,7 +5975,7 @@
       "weightedAvg": 226.15053107664943,
       "volume": 8730258.919999996,
       "points": 2880,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "贵州",
@@ -5921,7 +5984,7 @@
       "weightedAvg": 280.2694788012093,
       "volume": 8730258.919999996,
       "points": 2880,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "贵州",
@@ -5930,7 +5993,7 @@
       "weightedAvg": 207.9662799390496,
       "volume": 7361170.240000006,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "贵州",
@@ -5939,7 +6002,7 @@
       "weightedAvg": 231.4134295460053,
       "volume": 7361170.240000006,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "贵州",
@@ -5948,7 +6011,7 @@
       "weightedAvg": 65.3518675645483,
       "volume": 6384980.180000005,
       "points": 2880,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "贵州",
@@ -5957,7 +6020,7 @@
       "weightedAvg": 85.21417695629704,
       "volume": 6384980.180000005,
       "points": 2880,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "贵州",
@@ -5966,7 +6029,7 @@
       "weightedAvg": 278.4253396907929,
       "volume": 5696627.820000009,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "贵州",
@@ -5975,7 +6038,7 @@
       "weightedAvg": 296.8563761403945,
       "volume": 5696627.820000009,
       "points": 2976,
-      "volumeCurve": "统一典型曲线"
+      "volumeCurve": "光伏边界数据"
     },
     {
       "province": "贵州",

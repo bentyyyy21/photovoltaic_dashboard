@@ -137,6 +137,8 @@ NO_TYPICAL_VOLUME_YEARS = {
 HISTORICAL_VOLUME_FALLBACKS = {
     ("蒙东", 2025): {"实时": "日前"},
     ("湖南", 2025): {"日前": "实时"},
+    ("湖北", 2024): {"日前": "实时", "实时": "日前"},
+    ("湖北", 2025): {"日前": "实时", "实时": "日前"},
     ("吉林", 2025): {"实时": "日前"},
     ("云南", 2025): {"日前": "实时", "实时": "日前"},
     ("广西", 2025): {"日前": "实时", "实时": "日前"},
@@ -170,6 +172,10 @@ def cell_text(value: Any) -> str:
     if isinstance(value, time):
         return value.strftime("%H:%M")
     return str(value).strip()
+
+
+def is_typical_curve_source(value: Any) -> bool:
+    return cell_text(value) == "典型光伏曲线"
 
 
 def to_float(value: Any) -> float | None:
@@ -907,7 +913,7 @@ def ingest_standard_sheet(path: Path, province: str, typical_curve: dict[str, fl
     inferred_file_market = infer_market_from_filename(path.name)
     volume_cols = select_volume_columns(headers, province)
     records: list[dict[str, Any]] = []
-    needs_curve = any(source.endswith("典型光伏曲线") for _, _, source in volume_cols.values())
+    needs_curve = any(is_typical_curve_source(source) for _, _, source in volume_cols.values())
 
     for row in data_rows:
         d = normalize_date(row[date_col] if date_col < len(row) else None)
@@ -1160,7 +1166,7 @@ def extract_series(path: Path, province: str, typical_curve: dict[str, float]) -
     volume_cols = select_volume_columns(headers, province)
     prices: list[dict[str, Any]] = []
     volumes: list[dict[str, Any]] = []
-    used_typical_curve = any(v[2].endswith("典型光伏曲线") for v in volume_cols.values())
+    used_typical_curve = any(is_typical_curve_source(v[2]) for v in volume_cols.values())
     for row in ws.iter_rows(min_row=start_row, values_only=True):
         d = normalize_date(row[date_col] if date_col < len(row) else None)
         t = normalize_time(row[time_col] if time_col < len(row) else None)
@@ -1273,12 +1279,12 @@ def apply_historical_volume_mapping(info: dict[str, Any], province: str) -> None
         }
     elif province == "湖北":
         info["volumeColumns"] = {
-            "日前": "关联边界数据表：类型=日前 → 新能源负荷-光伏",
-            "实时": "关联边界数据表：类型=实时 → 新能源负荷-光伏",
+            "日前": "关联边界数据表：类型=日前 → 新能源负荷-光伏；为空时复用实时量",
+            "实时": "关联边界数据表：类型=实时 → 新能源负荷-光伏；为空时复用日前量",
         }
         info["volumeSource"] = {
-            "日前": "按日期时刻关联边界数据表日前新能源负荷-光伏，不使用典型曲线",
-            "实时": "按日期时刻关联边界数据表实时新能源负荷-光伏，不使用典型曲线",
+            "日前": "按日期时刻关联边界数据表日前新能源负荷-光伏；缺失时复用实时光伏量，不使用典型曲线",
+            "实时": "按日期时刻关联边界数据表实时新能源负荷-光伏；缺失时复用日前光伏量，不使用典型曲线",
         }
     else:
         info["volumeColumns"] = {
@@ -1336,7 +1342,7 @@ def calculate_slice(years: set[int] | None = None, months: set[str] | None = Non
             by_key[key]["volume"] += volume
             by_key[key]["points"] += 1
             source = cell_text(rec.get("source", "光伏边界数据"))
-            if "典型" in source:
+            if is_typical_curve_source(source):
                 by_key[key]["typicalVolume"] += volume
             else:
                 by_key[key]["boundaryVolume"] += volume
@@ -1372,7 +1378,7 @@ def calculate_slice(years: set[int] | None = None, months: set[str] | None = Non
                             staged_historical_prices[key]["priceSum"] += rec["price"]
                             staged_historical_prices[key]["count"] += 1
                         for rec in volumes:
-                            if "典型光伏曲线" not in rec["source"]:
+                            if not is_typical_curve_source(rec["source"]):
                                 staged_volumes[(rec["datetime"], rec["market"], rec["month"])] = (
                                     rec["volume"],
                                     rec["source"],
@@ -1429,7 +1435,7 @@ def calculate_slice(years: set[int] | None = None, months: set[str] | None = Non
                             for rec in prices:
                                 staged_prices[(rec["datetime"], rec["market"], rec["month"])] = rec["price"]
                             for rec in volumes:
-                                if "典型光伏曲线" not in rec["source"]:
+                                if not is_typical_curve_source(rec["source"]):
                                     staged_volumes[(rec["datetime"], rec["market"], rec["month"])] = (rec["volume"], rec["source"])
                             info["volumeColumns"] = {
                                 "日前": "关联供需/新能源负荷文件的日前光伏量",
@@ -1458,7 +1464,7 @@ def calculate_slice(years: set[int] | None = None, months: set[str] | None = Non
                             for rec in prices:
                                 staged_prices[(rec["datetime"], rec["market"], rec["month"])] = rec["price"]
                             for rec in volumes:
-                                if "典型光伏曲线" not in rec["source"]:
+                                if not is_typical_curve_source(rec["source"]):
                                     staged_volumes[(rec["datetime"], rec["market"], rec["month"])] = (rec["volume"], rec["source"])
                             if split_info.get("usesTypicalCurve"):
                                 curve_needed.add(province)
@@ -1476,7 +1482,7 @@ def calculate_slice(years: set[int] | None = None, months: set[str] | None = Non
                 _prices, volumes, info = extract_series(path, province, typical_curve)
                 volumes = selected_records(volumes)
                 for rec in volumes:
-                    if "典型光伏曲线" not in rec["source"]:
+                    if not is_typical_curve_source(rec["source"]):
                         staged_volumes[(rec["datetime"], rec["market"], rec["month"])] = (rec["volume"], rec["source"])
                 if info.get("usesTypicalCurve"):
                     curve_needed.add(province)
@@ -1497,7 +1503,7 @@ def calculate_slice(years: set[int] | None = None, months: set[str] | None = Non
             by_key[key]["priceVolume"] += price * volume
             by_key[key]["volume"] += volume
             by_key[key]["points"] += 1
-            if "典型" in source:
+            if is_typical_curve_source(source):
                 by_key[key]["typicalVolume"] += volume
             else:
                 by_key[key]["boundaryVolume"] += volume
@@ -1521,7 +1527,7 @@ def calculate_slice(years: set[int] | None = None, months: set[str] | None = Non
             by_key[key]["priceVolume"] += price_stats["priceSum"] * volume
             by_key[key]["volume"] += volume * count
             by_key[key]["points"] += count
-            if "典型" in source:
+            if is_typical_curve_source(source):
                 by_key[key]["typicalVolume"] += volume * count
             else:
                 by_key[key]["boundaryVolume"] += volume * count
