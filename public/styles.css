@@ -1293,7 +1293,7 @@ h1 {
 }
 
 .national-filters .filter-action {
-  justify-content: flex-start;
+  justify-content: flex-end;
 }
 
 .national-filters .filter-action button {
