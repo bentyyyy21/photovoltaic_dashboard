@@ -16,7 +16,7 @@
     </script>
     <link rel="stylesheet" href="./public/styles.css" />
     <link rel="stylesheet" href="./public/styles-v2.css?v=20260811-2" />
-    <script src="./public/data/dashboard-data.js?v=20260814-1"></script>
+    <script src="./public/data/dashboard-data.js?v=20260831-1"></script>
   </head>
   <body class="dashboard-v2" data-active-view="nationalModule">
     <main class="shell">
@@ -55,6 +55,14 @@
           <label>
             <span>结束月份</span>
             <select id="nationalEndMonth"></select>
+          </label>
+          <label class="export-market-control">
+            <span>导出市场</span>
+            <select id="exportNationalMarket">
+              <option value="all">日前 + 实时</option>
+              <option value="日前">日前</option>
+              <option value="实时">实时</option>
+            </select>
           </label>
           <div class="filter-action">
             <button id="exportNational" type="button" class="primary">导出全国各省逐月数据</button>
@@ -293,6 +301,14 @@
             <select id="calcMode">
               <option value="monthly">按单月计算</option>
               <option value="cycle">按多月周期计算</option>
+            </select>
+          </label>
+          <label class="export-market-control">
+            <span>导出市场</span>
+            <select id="exportProvinceMarket">
+              <option value="all">日前 + 实时</option>
+              <option value="日前">日前</option>
+              <option value="实时">实时</option>
             </select>
           </label>
           <div class="filter-action">

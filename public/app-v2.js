@@ -80,6 +80,8 @@ const els = {
   settlementRows: document.querySelector("#settlementRows"),
   exportProvince: document.querySelector("#exportProvince"),
   exportNational: document.querySelector("#exportNational"),
+  exportProvinceMarket: document.querySelector("#exportProvinceMarket"),
+  exportNationalMarket: document.querySelector("#exportNationalMarket"),
   mapTitle: document.querySelector("#mapTitle"),
   mapPeriodHint: document.querySelector("#mapPeriodHint"),
   mapModeButtons: document.querySelectorAll("[data-map-mode]"),
@@ -1539,6 +1541,14 @@ function exportMonth(month) {
   return month ? String(month).replace("-", "") : "";
 }
 
+function exportMarketLabel(value) {
+  return value === "all" ? "日前实时" : value;
+}
+
+function filterRowsForExport(rows, market) {
+  return market === "all" ? rows : rows.filter((row) => row.market === market);
+}
+
 function downloadRows(rows, filename, sheetName) {
   if (!window.XLSX) {
     window.alert("Excel 导出组件加载失败，请刷新页面后重试。");
@@ -1552,8 +1562,9 @@ function downloadRows(rows, filename, sheetName) {
     光伏现货加权均价_元每MWh: row.weightedAvg,
     权重合计: row.volume,
     样本点: row.points || row.months,
+    量价加权曲线: row.volumeCurve || "光伏边界数据",
   }));
-  const headers = ["省份", "月份", "市场", "光伏现货加权均价_元每MWh", "权重合计", "样本点"];
+  const headers = ["省份", "月份", "市场", "光伏现货加权均价_元每MWh", "权重合计", "样本点", "量价加权曲线"];
   const worksheet = window.XLSX.utils.aoa_to_sheet([
     headers,
     ...payload.map((row) => headers.map((header) => row[header] ?? "")),
@@ -1566,8 +1577,9 @@ function downloadRows(rows, filename, sheetName) {
     { wch: 30 },
     { wch: 18 },
     { wch: 12 },
+    { wch: 18 },
   ];
-  worksheet["!autofilter"] = { ref: `A1:F${Math.max(payload.length + 1, 1)}` };
+  worksheet["!autofilter"] = { ref: `A1:G${Math.max(payload.length + 1, 1)}` };
   for (let rowNumber = 2; rowNumber <= payload.length + 1; rowNumber += 1) {
     const monthCell = worksheet[`B${rowNumber}`];
     if (monthCell) {
@@ -1585,20 +1597,22 @@ function downloadRows(rows, filename, sheetName) {
 function exportNationalRows() {
   const start = els.nationalStart.value;
   const end = els.nationalEnd.value;
-  const rows = state.data.monthly
+  const selectedMarket = els.exportNationalMarket.value;
+  const rows = filterRowsForExport(state.data.monthly
     .filter((row) => row.month >= start && row.month <= end)
     .sort((a, b) => a.province.localeCompare(b.province, "zh-CN")
       || a.month.localeCompare(b.month)
-      || marketOrder.indexOf(a.market) - marketOrder.indexOf(b.market));
-  downloadRows(rows, `全国_${start}_${end}_各省逐月明细.xlsx`, "全国逐月明细");
+      || marketOrder.indexOf(a.market) - marketOrder.indexOf(b.market)), selectedMarket);
+  downloadRows(rows, `全国_${start}_${end}_${exportMarketLabel(selectedMarket)}_各省逐月明细.xlsx`, "全国逐月明细");
 }
 
 function exportProvinceRows() {
   const start = els.provinceStart.value;
   const end = els.provinceEnd.value;
+  const selectedMarket = els.exportProvinceMarket.value;
   downloadRows(
-    selectedRows(),
-    `${els.province.value}_${start}_${end}_逐月明细.xlsx`,
+    filterRowsForExport(selectedRows(), selectedMarket),
+    `${els.province.value}_${start}_${end}_${exportMarketLabel(selectedMarket)}_逐月明细.xlsx`,
     `${els.province.value}逐月明细`,
   );
 }

@@ -554,7 +554,7 @@ def ingest_split_market_workbook(path: Path, province: str, typical_curve: dict[
 
     records: list[dict[str, Any]] = []
     used_typical = False
-    day_volumes: dict[str, float] = {}
+    day_volumes: dict[str, tuple[float, str]] = {}
     real_price_rows: list[tuple[str, str, str, str, float]] = []
     real_prices: dict[str, float] = {}
     if real_price_col is not None:
@@ -576,10 +576,12 @@ def ingest_split_market_workbook(path: Path, province: str, typical_curve: dict[
         month = file_month or d[:7]
         dt = f"{d}T{t}:00"
         volume = to_float(row[day_volume_col] if day_volume_col < len(row) else None)
+        point_source = "光伏边界数据"
         if volume is None:
             volume = typical_curve.get(t, 0)
             used_typical = True
-        day_volumes[dt] = volume
+            point_source = "典型光伏曲线"
+        day_volumes[dt] = (volume, point_source)
         price = to_float(row[day_price_col] if day_price_col < len(row) else None)
         fallback_market = CROSS_MARKET_PRICE_FALLBACKS.get((province, month), {}).get("日前")
         if price is None and fallback_market == "实时":
@@ -592,22 +594,27 @@ def ingest_split_market_workbook(path: Path, province: str, typical_curve: dict[
                 "market": "日前",
                 "price": price,
                 "volume": volume,
+                "source": point_source,
             })
 
     if real_price_col is not None:
         for month, d, t, dt, price in real_price_rows:
-            volume = day_volumes.get(dt)
-            if volume is None:
+            volume_tuple = day_volumes.get(dt)
+            if volume_tuple is None:
                 volume = typical_curve.get(t, 0)
                 used_typical = True
+                point_source = "典型光伏曲线"
+            else:
+                volume, point_source = volume_tuple
             if volume is not None and price is not None:
                 records.append({
                     "province": province,
                     "month": month,
                     "datetime": dt,
-                    "market": "实时",
-                    "price": price,
-                    "volume": volume,
+                "market": "实时",
+                "price": price,
+                "volume": volume,
+                "source": point_source,
                 })
     day_price_mapping = day_headers[day_price_col]
     if (
@@ -685,6 +692,7 @@ def ingest_named_price_sheet(
                 "market": market,
                 "price": price,
                 "volume": volume,
+                "source": "典型光伏曲线",
             })
 
     return records, {
@@ -944,6 +952,7 @@ def ingest_standard_sheet(path: Path, province: str, typical_curve: dict[str, fl
                 "market": market,
                 "price": price,
                 "volume": volume,
+                "source": "典型光伏曲线" if used_typical else "光伏边界数据",
             })
     return records, {
         "file": path.name,
@@ -1107,6 +1116,7 @@ def ingest_horizontal_price_sheet(
                 "market": market,
                 "price": price,
                 "volume": interval_curve_weight(t),
+                "source": "典型光伏曲线",
             }
     records = list(records_by_key.values())
     market_label = inferred_market or "日前/实时"
@@ -1303,13 +1313,33 @@ def calculate_slice(years: set[int] | None = None, months: set[str] | None = Non
     for province_dir in sorted(provinces, key=lambda p: p.name):
         province = province_dir.name
         typical_curve = typical_curves.get(province, common_curve)
-        by_key: dict[tuple[str, str], dict[str, float]] = defaultdict(lambda: {"priceVolume": 0.0, "volume": 0.0, "points": 0})
+        by_key: dict[tuple[str, str], dict[str, float]] = defaultdict(
+            lambda: {
+                "priceVolume": 0.0,
+                "volume": 0.0,
+                "points": 0,
+                "boundaryVolume": 0.0,
+                "typicalVolume": 0.0,
+            }
+        )
         mapping_rows = []
         staged_prices: dict[tuple[str, str, str], float] = {}
         staged_historical_prices: dict[tuple[str, str, str], dict[str, float]] = defaultdict(
             lambda: {"priceSum": 0.0, "count": 0}
         )
         staged_volumes: dict[tuple[str, str, str], tuple[float, str]] = {}
+
+        def add_weighted_record(rec: dict[str, Any]) -> None:
+            key = (rec["month"], rec["market"])
+            volume = rec["volume"]
+            by_key[key]["priceVolume"] += rec["price"] * volume
+            by_key[key]["volume"] += volume
+            by_key[key]["points"] += 1
+            source = cell_text(rec.get("source", "光伏边界数据"))
+            if "典型" in source:
+                by_key[key]["typicalVolume"] += volume
+            else:
+                by_key[key]["boundaryVolume"] += volume
 
         source_paths = [
             path for path in sorted(province_dir.rglob("*.xlsx"))
@@ -1357,10 +1387,7 @@ def calculate_slice(years: set[int] | None = None, months: set[str] | None = Non
                     records = selected_records(records)
                     info["records"] = len(records)
                     for rec in records:
-                        key = (rec["month"], rec["market"])
-                        by_key[key]["priceVolume"] += rec["price"] * rec["volume"]
-                        by_key[key]["volume"] += rec["volume"]
-                        by_key[key]["points"] += 1
+                        add_weighted_record(rec)
                     curve_needed.add(province)
                     mapping_rows.append(info)
                     continue
@@ -1371,10 +1398,7 @@ def calculate_slice(years: set[int] | None = None, months: set[str] | None = Non
                     records = selected_records(records)
                     info["records"] = len(records)
                     for rec in records:
-                        key = (rec["month"], rec["market"])
-                        by_key[key]["priceVolume"] += rec["price"] * rec["volume"]
-                        by_key[key]["volume"] += rec["volume"]
-                        by_key[key]["points"] += 1
+                        add_weighted_record(rec)
                     mapping_rows.append(info)
                 else:
                     horizontal_result = ingest_horizontal_price_sheet(path, province, typical_curve)
@@ -1383,10 +1407,7 @@ def calculate_slice(years: set[int] | None = None, months: set[str] | None = Non
                         records = selected_records(records)
                         info["records"] = len(records)
                         for rec in records:
-                            key = (rec["month"], rec["market"])
-                            by_key[key]["priceVolume"] += rec["price"] * rec["volume"]
-                            by_key[key]["volume"] += rec["volume"]
-                            by_key[key]["points"] += 1
+                            add_weighted_record(rec)
                         if info.get("usesTypicalCurve"):
                             curve_needed.add(province)
                         mapping_rows.append(info)
@@ -1425,10 +1446,7 @@ def calculate_slice(years: set[int] | None = None, months: set[str] | None = Non
                         records = selected_records(records)
                         info["records"] = len(records)
                         for rec in records:
-                            key = (rec["month"], rec["market"])
-                            by_key[key]["priceVolume"] += rec["price"] * rec["volume"]
-                            by_key[key]["volume"] += rec["volume"]
-                            by_key[key]["points"] += 1
+                            add_weighted_record(rec)
                         if info.get("usesTypicalCurve"):
                             curve_needed.add(province)
                         if not records:
@@ -1474,11 +1492,15 @@ def calculate_slice(years: set[int] | None = None, months: set[str] | None = Non
                     continue
                 volume_tuple = (typical_curve.get(dt[11:16], 0), "典型光伏曲线")
                 curve_needed.add(province)
-            volume, _source = volume_tuple
+            volume, source = volume_tuple
             key = (month, market)
             by_key[key]["priceVolume"] += price * volume
             by_key[key]["volume"] += volume
             by_key[key]["points"] += 1
+            if "典型" in source:
+                by_key[key]["typicalVolume"] += volume
+            else:
+                by_key[key]["boundaryVolume"] += volume
 
         for (dt, market, month), price_stats in staged_historical_prices.items():
             volume_tuple = staged_volumes.get((dt, market, month))
@@ -1491,7 +1513,7 @@ def calculate_slice(years: set[int] | None = None, months: set[str] | None = Non
                     continue
                 volume_tuple = (typical_curve.get(dt[11:16], 0), "典型光伏曲线")
                 curve_needed.add(province)
-            volume, _source = volume_tuple
+            volume, source = volume_tuple
             count = int(price_stats["count"])
             if not count:
                 continue
@@ -1499,6 +1521,10 @@ def calculate_slice(years: set[int] | None = None, months: set[str] | None = Non
             by_key[key]["priceVolume"] += price_stats["priceSum"] * volume
             by_key[key]["volume"] += volume * count
             by_key[key]["points"] += count
+            if "典型" in source:
+                by_key[key]["typicalVolume"] += volume * count
+            else:
+                by_key[key]["boundaryVolume"] += volume * count
 
         province_months = []
         for (month, market), agg in sorted(by_key.items()):
@@ -1512,6 +1538,7 @@ def calculate_slice(years: set[int] | None = None, months: set[str] | None = Non
                 "weightedAvg": weighted,
                 "volume": agg["volume"],
                 "points": agg["points"],
+                "volumeCurve": "光伏边界数据" if agg["boundaryVolume"] else "统一典型曲线",
             }
             output["monthly"].append(row)
             province_months.append(month)
