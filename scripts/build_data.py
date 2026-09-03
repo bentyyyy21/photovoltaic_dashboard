@@ -254,6 +254,14 @@ def normalize_time(value: Any) -> str | None:
     return None
 
 
+def normalize_hourly_settlement_slot(value: Any) -> str | None:
+    """Map 1-24 settlement-hour labels to the corresponding hourly curve start."""
+    numeric = to_float(value)
+    if numeric is not None and numeric.is_integer() and 1 <= numeric <= 24:
+        return f"{(int(numeric) - 1) % 24:02d}:00"
+    return normalize_time(value)
+
+
 def normalize_datetime(value: Any) -> tuple[str, str] | tuple[None, None]:
     if isinstance(value, datetime):
         return value.strftime("%Y-%m-%d"), value.strftime("%H:%M")
@@ -1145,6 +1153,104 @@ def ingest_horizontal_price_sheet(
     }
 
 
+def ingest_regional_weighted_price_sheet(
+    path: Path,
+    province: str,
+    typical_curve: dict[str, float],
+) -> tuple[list[dict[str, Any]], dict[str, Any]] | None:
+    """Build provincial prices from a three-row regional price/volume workbook."""
+    wb = load_workbook_for_path(path)
+    ws = wb[wb.sheetnames[0]]
+    prepare_sheet(ws)
+    header_rows = list(ws.iter_rows(min_row=1, max_row=3, values_only=True))
+    if len(header_rows) < 3:
+        return None
+
+    market_headers = [cell_text(value) for value in header_rows[0]]
+    region_headers = [cell_text(value) for value in header_rows[1]]
+    metric_headers = [cell_text(value) for value in header_rows[2]]
+    date_col = find_col(market_headers, lambda header: header == "日期")
+    time_col = find_col(market_headers, lambda header: header == "时刻")
+    if date_col is None or time_col is None:
+        return None
+
+    market = ""
+    region = ""
+    regional_columns: dict[str, dict[str, dict[str, int]]] = defaultdict(lambda: defaultdict(dict))
+    for index, metric in enumerate(metric_headers):
+        if market_headers[index] in {"日前", "实时"}:
+            market = market_headers[index]
+        if region_headers[index]:
+            region = region_headers[index]
+        if market in {"日前", "实时"} and region and metric in {"电量", "电价"}:
+            regional_columns[market][region][metric] = index
+
+    pairs = {
+        market_name: {
+            region_name: values
+            for region_name, values in regions.items()
+            if "电量" in values and "电价" in values
+        }
+        for market_name, regions in regional_columns.items()
+    }
+    if not all(pairs.get(market_name) for market_name in ("日前", "实时")):
+        return None
+
+    def hourly_curve_weight(slot: str) -> float:
+        hour = int(slot[:2])
+        return sum(typical_curve.get(f"{hour:02d}:{minute:02d}", 0) for minute in (0, 15, 30, 45))
+
+    records = []
+    for row in ws.iter_rows(min_row=4, values_only=True):
+        d = normalize_date(row[date_col] if date_col < len(row) else None)
+        slot = normalize_hourly_settlement_slot(row[time_col] if time_col < len(row) else None)
+        if not d or not slot:
+            continue
+        curve_weight = hourly_curve_weight(slot)
+        if curve_weight <= 0:
+            continue
+        for market_name, regions in pairs.items():
+            regional_price_volume = 0.0
+            regional_volume = 0.0
+            for columns in regions.values():
+                volume = to_float(row[columns["电量"]] if columns["电量"] < len(row) else None)
+                price = to_float(row[columns["电价"]] if columns["电价"] < len(row) else None)
+                if volume is None or price is None or volume < 0:
+                    continue
+                regional_price_volume += price * volume
+                regional_volume += volume
+            if regional_volume <= 0:
+                continue
+            records.append({
+                "province": province,
+                "month": d[:7],
+                "datetime": f"{d}T{slot}:00",
+                "market": market_name,
+                "price": regional_price_volume / regional_volume,
+                "volume": curve_weight,
+                "source": "典型光伏曲线",
+            })
+
+    if not records:
+        return None
+    regions = "、".join(sorted(next(iter(pairs.values())).keys()))
+    return records, {
+        "file": path.name,
+        "sheet": ws.title,
+        "priceColumns": {
+            "日前": f"{regions}分区电量加权统一现货价",
+            "实时": f"{regions}分区电量加权统一现货价",
+        },
+        "volumeColumns": {"日前": "光伏典型曲线", "实时": "光伏典型曲线"},
+        "volumeSource": {
+            "日前": "先按分区电量加权统一日前现货价，再按小时光伏典型曲线加权",
+            "实时": "先按分区电量加权统一实时现货价，再按小时光伏典型曲线加权",
+        },
+        "records": len(records),
+        "usesTypicalCurve": True,
+    }
+
+
 def extract_series(path: Path, province: str, typical_curve: dict[str, float]) -> tuple[
     list[dict[str, Any]],
     list[dict[str, Any]],
@@ -1247,6 +1353,16 @@ def month_selected(month: str, years: set[int] | None, months: set[str] | None) 
 
 
 def path_may_match(path: Path, years: set[int] | None, months: set[str] | None) -> bool:
+    filename_months = [
+        f"{year}-{int(month):02d}"
+        for year, month in re.findall(r"(20\d{2})[-_./年 ]?(\d{1,2})", path.name)
+    ]
+    if len(filename_months) >= 2:
+        start_month, end_month = min(filename_months), max(filename_months)
+        if months is not None:
+            return any(start_month <= month <= end_month for month in months)
+        if years is not None:
+            return any(start_month[:4] <= str(year) <= end_month[:4] for year in years)
     file_month = month_from_filename(path.name)
     if file_month:
         return month_selected(file_month, years, months)
@@ -1384,6 +1500,17 @@ def calculate_slice(years: set[int] | None = None, months: set[str] | None = Non
                                     rec["source"],
                                 )
                     apply_historical_volume_mapping(info, province)
+                    mapping_rows.append(info)
+                    continue
+
+                regional_result = ingest_regional_weighted_price_sheet(path, province, typical_curve)
+                if regional_result is not None:
+                    records, info = regional_result
+                    records = selected_records(records)
+                    info["records"] = len(records)
+                    for rec in records:
+                        add_weighted_record(rec)
+                    curve_needed.add(province)
                     mapping_rows.append(info)
                     continue
 
