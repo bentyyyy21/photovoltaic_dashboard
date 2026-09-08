@@ -986,20 +986,51 @@ function renderChart(rows) {
   });
   ctx.textAlign = "left";
 
+  // Soft monthly columns create a quiet comparison layer behind the price lines.
+  const barValues = months.map((_, index) => Math.max(
+    ...series.map((item) => item.values[index]).filter((value) => value !== null),
+  ));
+  const barWidth = Math.max(8, Math.min(isMobile ? 14 : 18, chartW / Math.max(months.length * 4.5, 1)));
+  const barTop = state.theme === "dark" ? "rgba(101, 150, 215, 0.34)" : "rgba(177, 199, 231, 0.68)";
+  const barBottom = state.theme === "dark" ? "rgba(101, 150, 215, 0.08)" : "rgba(219, 229, 245, 0.18)";
+  barValues.forEach((value, index) => {
+    if (!Number.isFinite(value)) return;
+    const x = xAt(index) - barWidth / 2;
+    const y = yAt(value);
+    const gradient = ctx.createLinearGradient(0, y, 0, pad.top + chartH);
+    gradient.addColorStop(0, barTop);
+    gradient.addColorStop(1, barBottom);
+    ctx.fillStyle = gradient;
+    ctx.fillRect(x, y, barWidth, pad.top + chartH - y);
+  });
+
   series.forEach((item) => {
     ctx.strokeStyle = item.color;
     ctx.fillStyle = item.color;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 2.25;
     strokeSmoothValues(ctx, item.values, xAt, yAt);
     item.values.forEach((value, index) => {
       if (value === null) return;
       const x = xAt(index);
       const y = yAt(value);
       ctx.beginPath();
-      ctx.arc(x, y, 4, 0, Math.PI * 2);
+      ctx.arc(x, y, isMobile ? 3.5 : 4.5, 0, Math.PI * 2);
       ctx.fill();
+      ctx.strokeStyle = themeColor("--panel");
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      const labelOffset = item.market === "日前" ? -12 : 17;
+      ctx.font = `${isMobile ? 9 : 10}px Microsoft YaHei, Segoe UI, sans-serif`;
+      ctx.textAlign = "center";
+      ctx.lineWidth = 3.5;
+      ctx.strokeStyle = themeColor("--panel");
+      ctx.strokeText(fmt(value, 0), x, y + labelOffset);
+      ctx.fillStyle = item.color;
+      ctx.fillText(fmt(value, 0), x, y + labelOffset);
     });
   });
+  ctx.textAlign = "left";
   const hits = months.map((month, monthIndex) => {
     const available = series
       .map((item) => ({ item, value: item.values[monthIndex] }))
