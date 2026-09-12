@@ -560,6 +560,7 @@ def ingest_split_market_workbook(path: Path, province: str, typical_curve: dict[
         return None
 
     day_volume_col = find_col(day_headers, lambda h: "PHOTOVOLTAIC" in h.upper() or "光伏" in h)
+    real_volume_col = find_col(real_headers, lambda h: "PHOTOVOLTAIC" in h.upper() or "光伏" in h)
     day_price_col = find_col(day_headers, lambda h: "PRICE" in h.upper() or "价格" in h or "电价" in h)
     real_price_col = find_col(real_headers, lambda h: "PRICE" in h.upper() or "价格" in h or "电价" in h)
     if day_volume_col is None or day_price_col is None:
@@ -569,6 +570,7 @@ def ingest_split_market_workbook(path: Path, province: str, typical_curve: dict[
     records: list[dict[str, Any]] = []
     used_typical = False
     day_volumes: dict[str, tuple[float, str]] = {}
+    real_volumes: dict[str, tuple[float, str]] = {}
     real_price_rows: list[tuple[str, str, str, str, float]] = []
     real_prices: dict[str, float] = {}
     if real_price_col is not None:
@@ -582,6 +584,10 @@ def ingest_split_market_workbook(path: Path, province: str, typical_curve: dict[
                 continue
             real_prices[dt] = price
             real_price_rows.append((file_month or d[:7], d, t, dt, price))
+            if real_volume_col is not None:
+                volume = to_float(row[real_volume_col] if real_volume_col < len(row) else None)
+                if volume is not None:
+                    real_volumes[dt] = (volume, "光伏边界数据")
 
     for row in day_ws.iter_rows(min_row=2, values_only=True):
         d, t = normalize_datetime(row[0] if row else None)
@@ -613,7 +619,7 @@ def ingest_split_market_workbook(path: Path, province: str, typical_curve: dict[
 
     if real_price_col is not None:
         for month, d, t, dt, price in real_price_rows:
-            volume_tuple = day_volumes.get(dt)
+            volume_tuple = real_volumes.get(dt) or day_volumes.get(dt)
             if volume_tuple is None:
                 volume = typical_curve.get(t, 0)
                 used_typical = True
@@ -645,11 +651,13 @@ def ingest_split_market_workbook(path: Path, province: str, typical_curve: dict[
         },
         "volumeColumns": {
             "日前": day_headers[day_volume_col],
-            "实时": day_headers[day_volume_col],
+            "实时": real_headers[real_volume_col] if real_volume_col is not None else day_headers[day_volume_col],
         },
         "volumeSource": {
             "日前": "光伏字段；为空点使用典型曲线独立权重",
-            "实时": "实时表缺光伏字段，按日期时刻复用日前光伏字段；仍缺失时使用典型曲线",
+            "实时": "实时光伏字段；为空点按日期时刻复用日前光伏字段，仍缺失时使用典型曲线"
+            if real_volume_col is not None
+            else "实时表缺光伏字段，按日期时刻复用日前光伏字段；仍缺失时使用典型曲线",
         },
         "records": len(records),
         "usesTypicalCurve": used_typical,
@@ -1251,6 +1259,94 @@ def ingest_regional_weighted_price_sheet(
     }
 
 
+def ingest_henan_boundary_workbooks(
+    price_path: Path,
+    boundary_path: Path,
+    province: str,
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """Pair Henan hourly clearing prices with 96-point photovoltaic boundary output."""
+    price_wb = load_workbook_for_path(price_path)
+    price_ws = price_wb[price_wb.sheetnames[0]]
+    prepare_sheet(price_ws)
+    price_headers = [cell_text(value) for value in next(price_ws.iter_rows(min_row=1, max_row=1, values_only=True))]
+    price_date_col = find_col(price_headers, lambda header: header == "日期")
+    price_hour_col = find_col(price_headers, lambda header: header == "小时")
+    price_cols = {
+        "日前": find_col(price_headers, lambda header: header == "河南日前出清电价"),
+        "实时": find_col(price_headers, lambda header: header == "河南实时出清电价"),
+    }
+    if price_date_col is None or price_hour_col is None or any(index is None for index in price_cols.values()):
+        raise ValueError("河南现货价格表缺少日期、小时或日前/实时出清电价字段")
+
+    prices: dict[tuple[str, str, str], float] = {}
+    for row in price_ws.iter_rows(min_row=2, values_only=True):
+        d = normalize_date(row[price_date_col] if price_date_col < len(row) else None)
+        hour = cell_text(row[price_hour_col] if price_hour_col < len(row) else None)
+        if not d or not hour:
+            continue
+        for market, index in price_cols.items():
+            value = to_float(row[index] if index is not None and index < len(row) else None)
+            if value is not None:
+                prices[(d, hour, market)] = value
+    price_wb.close()
+
+    boundary_wb = load_workbook_for_path(boundary_path)
+    boundary_ws = boundary_wb[boundary_wb.sheetnames[0]]
+    prepare_sheet(boundary_ws)
+    boundary_headers = [cell_text(value) for value in next(boundary_ws.iter_rows(min_row=1, max_row=1, values_only=True))]
+    indicator_col = find_col(boundary_headers, lambda header: header == "指标名称")
+    date_col = find_col(boundary_headers, lambda header: header == "日期")
+    time_col = find_col(boundary_headers, lambda header: header == "时间点")
+    hour_col = find_col(boundary_headers, lambda header: header == "小时")
+    value_col = find_col(boundary_headers, lambda header: header == "指标值")
+    if any(index is None for index in (indicator_col, date_col, time_col, hour_col, value_col)):
+        raise ValueError("河南8个指标表缺少光伏边界量所需字段")
+
+    indicator_markets = {
+        "光伏_新能源出力预测_河南": "日前",
+        "光伏_新能源出力实际_河南": "实时",
+    }
+    records = []
+    for row in boundary_ws.iter_rows(min_row=2, values_only=True):
+        indicator = cell_text(row[indicator_col] if indicator_col is not None and indicator_col < len(row) else None)
+        market = indicator_markets.get(indicator)
+        if not market:
+            continue
+        d = normalize_date(row[date_col] if date_col is not None and date_col < len(row) else None)
+        slot = normalize_time(row[time_col] if time_col is not None and time_col < len(row) else None)
+        hour = cell_text(row[hour_col] if hour_col is not None and hour_col < len(row) else None)
+        volume = to_float(row[value_col] if value_col is not None and value_col < len(row) else None)
+        price = prices.get((d or "", hour, market))
+        if not d or not slot or volume is None or volume < 0 or price is None:
+            continue
+        records.append({
+            "province": province,
+            "month": d[:7],
+            "datetime": f"{d}T{slot}:00",
+            "market": market,
+            "price": price,
+            "volume": volume,
+            "source": "光伏边界数据",
+        })
+    boundary_wb.close()
+
+    return records, {
+        "file": f"{price_path.name} + {boundary_path.name}",
+        "sheet": f"{price_ws.title} + {boundary_ws.title}",
+        "priceColumns": {"日前": "河南日前出清电价", "实时": "河南实时出清电价"},
+        "volumeColumns": {
+            "日前": "光伏_新能源出力预测_河南",
+            "实时": "光伏_新能源出力实际_河南",
+        },
+        "volumeSource": {
+            "日前": "河南8个指标边界数据：光伏新能源出力预测",
+            "实时": "河南8个指标边界数据：光伏新能源出力实际",
+        },
+        "records": len(records),
+        "usesTypicalCurve": False,
+    }
+
+
 def extract_series(path: Path, province: str, typical_curve: dict[str, float]) -> tuple[
     list[dict[str, Any]],
     list[dict[str, Any]],
@@ -1467,6 +1563,25 @@ def calculate_slice(years: set[int] | None = None, months: set[str] | None = Non
             path for path in sorted(province_dir.rglob("*.xlsx"))
             if not path.name.startswith("~$") and path_may_match(path, years, months)
         ]
+        if province == "河南":
+            price_path = next((path for path in province_dir.glob("河南现货价格_*.xlsx") if not path.name.startswith("~$")), None)
+            boundary_path = next((path for path in province_dir.glob("河南_8个指标_*.xlsx") if not path.name.startswith("~$")), None)
+            if price_path and boundary_path:
+                records, info = ingest_henan_boundary_workbooks(price_path, boundary_path, province)
+                records = selected_records(records)
+                info["records"] = len(records)
+                for rec in records:
+                    add_weighted_record(rec)
+                mapping_rows.append(info)
+                source_paths = [
+                    path for path in source_paths
+                    if path not in {price_path, boundary_path} and "河南数据模板" not in path.name
+                ]
+        if province == "浙江" and any(re.match(r"浙江_20\d{6}", path.name) for path in source_paths):
+            source_paths = [
+                path for path in source_paths
+                if "浙江日前电价" not in path.name and "浙江实时电价" not in path.name
+            ]
         for path in source_paths:
             file_month = month_from_filename(path.name)
             try:

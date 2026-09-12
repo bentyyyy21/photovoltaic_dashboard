@@ -18,10 +18,10 @@ const state = {
 
 if ("scrollRestoration" in history) history.scrollRestoration = "manual";
 
-const NATIONAL_DEFAULT_START = "2025-06";
-const NATIONAL_DEFAULT_END = "2026-07";
+const NATIONAL_DEFAULT_START = "2025-09";
+const NATIONAL_DEFAULT_END = "2026-08";
 const PROVINCE_DEFAULT_START = "2026-01";
-const PROVINCE_DEFAULT_END = "2026-07";
+const PROVINCE_DEFAULT_END = "2026-08";
 const chartHits = new WeakMap();
 const barChartOffsets = new WeakMap();
 const MAP_PRICE_ALIASES = {
