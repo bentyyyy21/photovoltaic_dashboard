@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-13T01:57:09",
+  "generatedAt": "2026-09-14T10:18:40",
   "provinces": [
     {
       "name": "云南",
@@ -330,7 +330,8 @@
         "2026-04",
         "2026-05",
         "2026-06",
-        "2026-07"
+        "2026-07",
+        "2026-08"
       ]
     },
     {
@@ -852,6 +853,15 @@
       "month": "2026-07",
       "market": "日前",
       "weightedAvg": 54.42451477747528,
+      "volume": 869.7484939275988,
+      "points": 2976,
+      "volumeCurve": "统一典型曲线"
+    },
+    {
+      "province": "云南",
+      "month": "2026-08",
+      "market": "实时",
+      "weightedAvg": 120.13479675306893,
       "volume": 869.7484939275988,
       "points": 2976,
       "volumeCurve": "统一典型曲线"
@@ -3575,6 +3585,15 @@
       "volumeCurve": "统一典型曲线"
     },
     {
+      "province": "广西",
+      "month": "2026-08",
+      "market": "日前",
+      "weightedAvg": 215.027122962343,
+      "volume": 869.7484939275988,
+      "points": 2976,
+      "volumeCurve": "统一典型曲线"
+    },
+    {
       "province": "江苏",
       "month": "2026-01",
       "market": "实时",
@@ -4691,6 +4710,15 @@
       "volumeCurve": "统一典型曲线"
     },
     {
+      "province": "海南",
+      "month": "2026-08",
+      "market": "日前",
+      "weightedAvg": 165.088913362123,
+      "volume": 869.7484939275988,
+      "points": 2976,
+      "volumeCurve": "统一典型曲线"
+    },
+    {
       "province": "湖北",
       "month": "2024-04",
       "market": "日前",
@@ -5183,6 +5211,24 @@
       "weightedAvg": 111.07074121836976,
       "volume": 5111226.670000004,
       "points": 744,
+      "volumeCurve": "光伏边界数据"
+    },
+    {
+      "province": "湖北",
+      "month": "2026-08",
+      "market": "实时",
+      "weightedAvg": 67.37721440660086,
+      "volume": 23082341.167999998,
+      "points": 2976,
+      "volumeCurve": "光伏边界数据"
+    },
+    {
+      "province": "湖北",
+      "month": "2026-08",
+      "market": "日前",
+      "weightedAvg": 39.60860792844029,
+      "volume": 23082341.167999998,
+      "points": 2976,
       "volumeCurve": "光伏边界数据"
     },
     {
@@ -6810,6 +6856,15 @@
       "month": "2026-08",
       "market": "实时",
       "weightedAvg": 453.2722010662657,
+      "volume": 869.7484939275988,
+      "points": 2976,
+      "volumeCurve": "统一典型曲线"
+    },
+    {
+      "province": "贵州",
+      "month": "2026-08",
+      "market": "日前",
+      "weightedAvg": 417.35979288547065,
       "volume": 869.7484939275988,
       "points": 2976,
       "volumeCurve": "统一典型曲线"
