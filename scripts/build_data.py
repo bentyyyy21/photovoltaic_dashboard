@@ -117,6 +117,7 @@ PROVINCE_VOLUME_PREFERENCES = {
 PROVINCES_WITHOUT_TYPICAL_VOLUME = {"甘肃"}
 
 HISTORICAL_STAGED_VOLUME_PROVINCES = {
+    "冀南",
     "蒙东",
     "湖南",
     "湖北",
@@ -128,6 +129,7 @@ HISTORICAL_STAGED_VOLUME_PROVINCES = {
 }
 
 NO_TYPICAL_VOLUME_YEARS = {
+    "冀南": {2024, 2025},
     "蒙东": {2025},
     "湖南": {2025},
     "湖北": {2024, 2025},
@@ -135,6 +137,8 @@ NO_TYPICAL_VOLUME_YEARS = {
 }
 
 HISTORICAL_VOLUME_FALLBACKS = {
+    ("冀南", 2024): {"日前": "实时"},
+    ("冀南", 2025): {"日前": "实时"},
     ("蒙东", 2025): {"实时": "日前"},
     ("湖南", 2025): {"日前": "实时"},
     ("湖北", 2024): {"日前": "实时", "实时": "日前"},
@@ -1471,7 +1475,17 @@ def path_may_match(path: Path, years: set[int] | None, months: set[str] | None) 
 
 
 def apply_historical_volume_mapping(info: dict[str, Any], province: str) -> None:
-    if province in {"蒙东", "吉林"}:
+    if province == "冀南":
+        info["volumeColumns"] = {
+            "日前": "类型=实时 → 光伏出力",
+            "实时": "类型=实时 → 光伏出力",
+        }
+        info["volumeSource"] = {
+            "日前": "日前光伏出力为空，按日期时刻使用实时光伏出力，不使用典型曲线",
+            "实时": "使用实时光伏出力，不使用典型曲线",
+        }
+        info["usesTypicalCurve"] = False
+    elif province in {"蒙东", "吉林"}:
         info["volumeColumns"] = {
             "日前": "类型=日前 → 新能源负荷-光伏",
             "实时": "类型=实时 → 新能源负荷-光伏；为空时复用日前量",
