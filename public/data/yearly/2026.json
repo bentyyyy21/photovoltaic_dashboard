@@ -3,7 +3,7 @@
   "years": [
     2026
   ],
-  "generatedAt": "2026-10-19T11:48:31",
+  "generatedAt": "2026-10-19T17:51:52",
   "monthly": [
     {
       "province": "云南",
@@ -2115,18 +2115,18 @@
       "province": "湖北",
       "month": "2026-08",
       "market": "实时",
-      "weightedAvg": 67.37721440660086,
-      "volume": 23082341.167999998,
-      "points": 2976,
+      "weightedAvg": 67.3772136305079,
+      "volume": 5770585.540000003,
+      "points": 744,
       "volumeCurve": "光伏边界数据"
     },
     {
       "province": "湖北",
       "month": "2026-08",
       "market": "日前",
-      "weightedAvg": 39.60860792844029,
-      "volume": 23082341.167999998,
-      "points": 2976,
+      "weightedAvg": 39.6082539244189,
+      "volume": 5770585.540000003,
+      "points": 744,
       "volumeCurve": "光伏边界数据"
     },
     {
