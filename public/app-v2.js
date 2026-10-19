@@ -19,9 +19,9 @@ const state = {
 if ("scrollRestoration" in history) history.scrollRestoration = "manual";
 
 const NATIONAL_DEFAULT_START = "2025-09";
-const NATIONAL_DEFAULT_END = "2026-08";
+const NATIONAL_DEFAULT_END = "2026-09";
 const PROVINCE_DEFAULT_START = "2026-01";
-const PROVINCE_DEFAULT_END = "2026-08";
+const PROVINCE_DEFAULT_END = "2026-09";
 const chartHits = new WeakMap();
 const barChartOffsets = new WeakMap();
 const MAP_PRICE_ALIASES = {
@@ -362,6 +362,11 @@ function selectedRows() {
     .sort((a, b) => a.month.localeCompare(b.month) || marketOrder.indexOf(a.market) - marketOrder.indexOf(b.market));
 }
 
+function partialCoverageLabel(row) {
+  if (!row.coveredDays || !row.daysInMonth) return "";
+  return `${row.month} 仅覆盖 ${row.coverageStart.slice(5)} 至 ${row.coverageEnd.slice(5)}（${row.coveredDays}/${row.daysInMonth} 天）`;
+}
+
 function weightedCycle(rows, market, province = els.province.value, start = els.provinceStart.value, end = els.provinceEnd.value) {
   const subset = rows.filter((row) => row.market === market);
   const volume = subset.reduce((sum, row) => sum + row.volume, 0);
@@ -374,6 +379,7 @@ function weightedCycle(rows, market, province = els.province.value, start = els.
     volume,
     months: subset.length,
     points: subset.reduce((sum, row) => sum + row.points, 0),
+    partialCoverage: subset.map(partialCoverageLabel).filter(Boolean).join("；"),
   };
 }
 
@@ -1166,6 +1172,7 @@ function drawBarChart(canvas, rows, color) {
         { color: palette[1], name: "加权均价", value: `${fmt(row.weightedAvg)} 元/MWh` },
         { color: "#94a3b8", name: "权重合计", value: fmt(row.volume, 0) },
         { color: "#cbd5e1", name: "样本点", value: fmt(row.points, 0) },
+        ...(row.partialCoverage ? [{ color: "#d97706", name: "覆盖范围", value: row.partialCoverage }] : []),
       ],
     });
     ctx.fillStyle = themeColor("--chart-text");
@@ -1452,7 +1459,7 @@ function renderResults(rows) {
   const tableRows = els.mode.value === "monthly" ? rows : cycleRows(rows);
   els.resultRows.innerHTML = tableRows.map((row) => `
     <tr>
-      <td>${row.month || row.period}</td>
+      <td>${row.month || row.period}${row.coveredDays || row.partialCoverage ? `<small class="coverage-note">${escapeHtml(partialCoverageLabel(row) || row.partialCoverage)}</small>` : ""}</td>
       <td>${row.market}</td>
       <td>${fmt(row.weightedAvg)}</td>
       <td>${fmt(row.volume, 0)}</td>
@@ -1489,7 +1496,7 @@ function renderNational() {
   renderNationalTrend();
   const rowHtml = (rows) => rows.map((row) => `
     <tr>
-      <td>${row.province}</td>
+      <td>${row.province}${row.partialCoverage ? `<small class="coverage-note">${escapeHtml(row.partialCoverage)}</small>` : ""}</td>
       <td>${fmt(row.weightedAvg)}</td>
       <td>${fmt(row.volume, 0)}</td>
       <td>${row.points}</td>

@@ -247,6 +247,14 @@ html[data-theme="dark"] .dashboard-v2 .dashboard-nav a.is-active {
   background: rgba(20, 121, 201, 0.06);
 }
 
+.dashboard-v2 .coverage-note {
+  display: block;
+  margin-top: 3px;
+  color: #a65d09;
+  font-size: 12px;
+  white-space: normal;
+}
+
 @media (max-width: 900px) {
   .dashboard-v2 .shell {
     width: min(100% - 16px, 760px);

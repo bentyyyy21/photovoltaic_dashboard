@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import calendar
 import json
 import math
 import os
@@ -309,7 +310,7 @@ def find_col(headers: list[str], predicate) -> int | None:
 
 
 def is_time_header(header: str) -> bool:
-    return header in {"时刻", "时刻点"} or header.endswith("-时刻") or header.endswith("-时刻点")
+    return header in {"时刻", "时刻点", "时间点"} or header.endswith("-时刻") or header.endswith("-时刻点") or header.endswith("-时间点")
 
 
 def is_historical_file(path: Path) -> bool:
@@ -1552,6 +1553,7 @@ def calculate_slice(years: set[int] | None = None, months: set[str] | None = Non
                 "points": 0,
                 "boundaryVolume": 0.0,
                 "typicalVolume": 0.0,
+                "dates": set(),
             }
         )
         mapping_rows = []
@@ -1563,6 +1565,7 @@ def calculate_slice(years: set[int] | None = None, months: set[str] | None = Non
 
         def add_weighted_record(rec: dict[str, Any]) -> None:
             key = (rec["month"], rec["market"])
+            by_key[key]["dates"].add(rec["datetime"][:10])
             volume = rec["volume"]
             by_key[key]["priceVolume"] += rec["price"] * volume
             by_key[key]["volume"] += volume
@@ -1759,6 +1762,7 @@ def calculate_slice(years: set[int] | None = None, months: set[str] | None = Non
             by_key[key]["priceVolume"] += price * volume
             by_key[key]["volume"] += volume
             by_key[key]["points"] += 1
+            by_key[key]["dates"].add(dt[:10])
             if is_typical_curve_source(source):
                 by_key[key]["typicalVolume"] += volume
             else:
@@ -1783,12 +1787,14 @@ def calculate_slice(years: set[int] | None = None, months: set[str] | None = Non
             by_key[key]["priceVolume"] += price_stats["priceSum"] * volume
             by_key[key]["volume"] += volume * count
             by_key[key]["points"] += count
+            by_key[key]["dates"].add(dt[:10])
             if is_typical_curve_source(source):
                 by_key[key]["typicalVolume"] += volume * count
             else:
                 by_key[key]["boundaryVolume"] += volume * count
 
         province_months = []
+        partial_notes: dict[str, list[str]] = defaultdict(list)
         for (month, market), agg in sorted(by_key.items()):
             if not agg["volume"]:
                 continue
@@ -1802,9 +1808,22 @@ def calculate_slice(years: set[int] | None = None, months: set[str] | None = Non
                 "points": agg["points"],
                 "volumeCurve": "光伏边界数据" if agg["boundaryVolume"] else "统一典型曲线",
             }
+            days_in_month = calendar.monthrange(int(month[:4]), int(month[5:]))[1]
+            if 0 < len(agg["dates"]) < days_in_month:
+                row["coveredDays"] = len(agg["dates"])
+                row["daysInMonth"] = days_in_month
+                row["coverageStart"] = min(agg["dates"])
+                row["coverageEnd"] = max(agg["dates"])
+                partial_notes[month].append(
+                    f"{market}仅覆盖{row['coverageStart']}至{row['coverageEnd']}（{row['coveredDays']}/{days_in_month}天）"
+                )
             output["monthly"].append(row)
             province_months.append(month)
 
+        for item in mapping_rows:
+            file_month = month_from_filename(item.get("file", ""))
+            if file_month in partial_notes:
+                item["coverageNote"] = "；".join(partial_notes[file_month])
         output["provinces"].append({"name": province, "months": sorted(set(province_months))})
         output["mappings"].append({"province": province, "files": mapping_rows})
         matched = match_params(province, params)
@@ -2059,7 +2078,7 @@ def write_mapping_workbook(mappings: list[dict[str, Any]]) -> None:
     for mapping in mappings:
         province = mapping["province"]
         for item in mapping.get("files", []):
-            status = item.get("error") or item.get("ignored") or ""
+            status = item.get("error") or item.get("ignored") or item.get("coverageNote") or ""
             manual, instruction = existing_notes.get((province, item.get("file", "")), ("", ""))
             if not instruction:
                 instruction = "当前映射已按脚本识别结果更新；如需调整，请在本列补充字段与复用规则。"
